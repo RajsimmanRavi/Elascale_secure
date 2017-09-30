@@ -1,0 +1,49 @@
+################### Dockbeat Configuration Example #########################
+
+############################# Dockbeat ######################################
+
+dockbeat:
+  # Defines how often a docker stat is sent to the output
+  period: ${PERIOD:10}
+
+  # Defines the docker socket path
+  # By default, this will get the unix:///var/run/docker.sock
+  socket: ${DOCKER_SOCKET:unix:///var/run/docker.sock}
+
+  # If dockbeat has to deal with a TLS-enabled docker daemon, you need to enable TLS and configure path for key and certificates.
+  tls:
+    # By default, TLS is disabled
+    enable: ${DOCKER_ENABLE_TLS:false}
+
+    # Path to the cert file
+    cert_path: ${DOCKER_CERT_PATH}
+
+    # Path to the key file
+    key_path: ${DOCKER_KEY_PATH}
+
+  # Enable or disable stats shipping
+  stats:
+    container: true
+    net: true 
+    memory: true
+    blkio: true
+    cpu: true
+
+output:
+
+  ### Elasticsearch as output
+  elasticsearch:
+    hosts: ["elasticsearch:9200"]
+    protocol: "https"
+    index: "dockbeat"
+    template:
+      name: "dockbeat"
+      path: "dockbeat.template.json"
+      overwrite: false
+    tls:
+      certificate_authorities: ["/etc/dockbeat/elasticsearch_certificate.pem"]
+shipper:
+logging:
+  to_syslog: false
+  files:
+    rotateeverybytes: 10485760 # = 10MB

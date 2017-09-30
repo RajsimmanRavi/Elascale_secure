@@ -1,0 +1,63 @@
+version: '3'
+services:
+  cass:
+    image: cassandra:latest
+    ports:
+      - "9042:9042"
+      - "7000:7000"
+      - "7199:7199"
+    deploy:
+      placement:
+        constraints:
+          - node.labels.loc == core
+  zookeeper:
+    image: wurstmeister/zookeeper
+    deploy:
+      restart_policy:
+        condition: on-failure
+        window: 120s
+      placement:
+        constraints:
+          - node.labels.loc == agg-sensor 
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 500M
+      restart_policy:
+        condition: on-failure
+        window: 120s
+      placement:
+        constraints:
+          - node.labels.loc == agg-sensor
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: 10.11.1.23
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_CREATE_TOPICS: "stats:1:1"
+      KAFKA_ZOOKEEPER_CONNECT: 10.11.1.23:2181
+  sensor:
+    image: perplexedgamer/sensor:v3
+    deploy:
+      placement:
+        constraints:
+          - node.labels.loc == agg-sensor
+    environment:
+      KAFKA_IP: 10.11.1.23
+      KAFKA_PORT: 9092
+  edge:
+    image: perplexedgamer/edge_processor:v6
+    deploy:
+      placement:
+        constraints:
+          - node.labels.loc == edge
+    environment:
+      KAFKA_IP: 10.11.1.23
+      CASS_IP: 10.11.1.10

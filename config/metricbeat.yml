@@ -1,0 +1,26 @@
+#==========================  Modules configuration ============================
+metricbeat.modules:
+#------------------------------- System Module -------------------------------
+- module: system
+  metricsets:
+    - cpu
+    - memory
+    - network
+    - diskio 
+  enabled: true
+  period: 10s
+  processes: ['.*']
+
+name: "raj-searchguard"
+#----------------------------- Logstash output --------------------------------
+#output.logstash:
+  # The Logstash hosts
+#  hosts: ["10.11.1.17:5044"]
+
+#-------------------------- Elasticsearch output ------------------------------
+output.elasticsearch:
+  protocol: https
+  hosts: ["elasticsearch:9200"]
+  index: "metricbeat-%{+yyyy.MM.dd}"
+  ssl.certificate_authorities:
+    - /usr/share/metricbeat/elasticsearch_certificate.pem

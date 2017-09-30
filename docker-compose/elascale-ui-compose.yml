@@ -1,0 +1,52 @@
+version: '3.1'
+
+services:
+   v2:
+     image: perplexedgamer/elascale_v2:v2.2
+     volumes:
+       - /home/ubuntu/Elascale_secure/config:/home/ubuntu/Elascale_secure/config
+       - /home/ubuntu/Elascale_secure/certs:/home/ubuntu/Elascale_secure/certs
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == master
+     environment:
+       PYTHONUNBUFFERED :   "1"
+       PKEY_PASSWORD    : /run/secrets/pkey_password
+       PKEY_FILE	    : /run/secrets/pkey_file
+     secrets:
+       - pkey_password
+       - pkey_file
+    extra_hosts: 
+      - "elasticsearch:10.11.1.24"
+   ui:
+     image: perplexedgamer/ui:v5
+     volumes:
+       - /home/ubuntu/Elascale_secure/config:/home/ubuntu/Elascale_secure/config
+       - /home/ubuntu/Elascale_secure/certs:/home/ubuntu/Elascale_secure/certs
+       - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == master
+     ports:
+       - 8888:8888
+     environment:
+       HOST_IP : "10.12.22.2"
+       HOST_PORT : "8888"
+       ELASTIC_IP : "10.11.1.24"
+       MICRO : "/home/ubuntu/Elascale_secure/config/microservices.ini"
+       MACRO : "/home/ubuntu/Elascale_secure/config/macroservices.ini"
+       SELF_CERT : "/home/ubuntu/Elascale_secure/certs/elascale_ui_certificate.pem"
+       SELF_KEY : "/home/ubuntu/Elascale_secure/certs/elascale_ui_private_key.pem"
+       NGINX_CERT : "/home/ubuntu/Elascale_secure/certs/elasticsearch_certificate.pem"
+       USERNAME : "elascale"
+       PASSWORD : "savi_elascale"
+       PYTHONUNBUFFERED : "1"
+     extra_hosts: 
+       - "elasticsearch:10.11.1.24"
+secrets:
+   pkey_password:
+     file: /home/ubuntu/Elascale_secure/pass_key/pass_key_passphrase.txt
+   pkey_file:
+     file: /home/ubuntu/Elascale_secure/pass_key/pass_key
