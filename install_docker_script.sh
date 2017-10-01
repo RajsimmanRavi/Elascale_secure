@@ -89,7 +89,7 @@ fi
 
 if [ ! -f $SCRIPTS_DIR"/create_nodes.sh" ]
 then 
-    sudo git clone https://github.com/RajsimmanRavi/Elascale_scripts.git $SCRIPTS_DIR
+    sudo git clone https://github.com/RajsimmanRavi/Elascale_secure.git $SCRIPTS_DIR
     echo "Cloned scripts from Github repo"
 fi
 
