@@ -8,11 +8,22 @@ fi
 
 SCRIPTS_DIR="/home/ubuntu/Elascale_secure"
 COMPOSE_DIR="$SCRIPTS_DIR/docker_compose"
+CONFIG_DIR="$SCRIPTS_DIR/config/"
+CERTS_DIR="$SCRIPTS_DIR/certs/"
+
 ELASTIC_IP="$1"
 
-#Now, replace the IP in ek-compose.yml to the ELASTIC_IP
-sed -i "s/elasticsearch:.*/elasticsearch:$ELASTIC_IP\"/g" $COMPOSE_DIR/ek-compose.yml
-        
+# Now, replace the IP in ek-compose.yml to the ELASTIC_IP
+sed -i "s/\"elasticsearch:.*\"/\"elasticsearch:$ELASTIC_IP\"/g" $COMPOSE_DIR/ek-compose.yml
+
+echo "sending certs directory to the monitor VM"
+# Send the certs directory to the monitor VM
+sudo docker-machine scp -r $CONFIG_DIR monitor:~
+
+echo "sending config directory to the monitor VM"
+# Send the config directory to the monitor VM
+sudo docker-machine scp -r $CERTS_DIR monitor:~
+
 echo "Deploying EK services"
 
 sudo docker stack deploy -c $COMPOSE_DIR/ek-compose.yml EK_monitor

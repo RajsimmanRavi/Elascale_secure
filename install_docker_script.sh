@@ -82,7 +82,13 @@ if [ ! -d "$SCRIPTS_DIR" ]
 then
     #********** Create Elascale_secure directory and fetch the scripts ****************
     sudo mkdir $SCRIPTS_DIR
+    
+    #********** Create certs directory for storing certificates ****************
+    sudo mkdir $SCRIPTS_DIR/certs
+    
     echo "Created Scripts directory at /home/ubuntu/Elascale_secure"
+
+
 fi
 
 #Check is scripts is installed on the machine from github

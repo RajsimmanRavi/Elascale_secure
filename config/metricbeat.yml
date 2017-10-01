@@ -11,7 +11,7 @@ metricbeat.modules:
   period: 10s
   processes: ['.*']
 
-name: "raj-searchguard"
+name: "iot-swarm-master"
 #----------------------------- Logstash output --------------------------------
 #output.logstash:
   # The Logstash hosts

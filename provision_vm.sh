@@ -26,10 +26,10 @@ VM_FLAVOR="m1.medium"
 #Hamzeh requested to create large flavor for iot-core VM for future deployments
 #Hence, I will create the snippet, but comment them (so they can be used for future deployments)
 
-#if [[ $VM_NAME == "iot-core" ]]
-#then 
-#    VM_FLAVOR="m1.large"
-#fi
+if [[ $VM_NAME == "monitor" ]]
+then 
+    VM_FLAVOR="m1.large"
+fi
 
 if [[ -z $check_vm ]]
 then

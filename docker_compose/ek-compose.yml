@@ -11,26 +11,26 @@ services:
   kibana:
     image: perplexedgamer/kibana-savi:latest
     volumes:
-      - /home/ubuntu/Elascale_secure/config/kibana.yml:/usr/share/kibana/config/kibana.yml
-      - /home/ubuntu/Elascale_secure/certs/elasticsearch_certificate.pem:/home/elasticsearch_certificate.pem
+      - /home/ubuntu/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+      - /home/ubuntu/certs/elasticsearch_certificate.pem:/home/elasticsearch_certificate.pem
     deploy:
       placement:
         constraints:
           - node.labels.role == monitor
     extra_hosts: 
-      - "elasticsearch:10.11.1.24"
+      - "elasticsearch:10.11.1.5"
     networks:
       net:
   nginx:
-    image: savi-nginx_v5
+    image: perplexedgamer/savi-nginx:v2
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /home/ubuntu/Elascale_secure/config/nginx.conf:/etc/nginx/nginx.conf
-      - /home/ubuntu/Elascale_secure/config/.htpasswd:/etc/nginx/.htpasswd
-      - /home/ubuntu/Elascale_secure/certs/elasticsearch_certificate.pem:/etc/nginx/elasticsearch_certificate.pem
-      - /home/ubuntu/Elascale_secure/certs/elasticsearch_private_key.pem:/etc/nginx/elasticsearch_private_key.pem
-      - /home/ubuntu/Elascale_secure/certs/kibana_certificate.pem:/home/kibana_certificate.pem
-      - /home/ubuntu/Elascale_secure/certs/kibana_private_key.pem:/home/kibana_private_key.pem
+      - /home/ubuntu/config/nginx.conf:/etc/nginx/nginx.conf
+      - /home/ubuntu/config/.htpasswd:/etc/nginx/.htpasswd
+      - /home/ubuntu/certs/elasticsearch_certificate.pem:/etc/nginx/nginx_certificate.pem
+      - /home/ubuntu/certs/elasticsearch_private_key.pem:/etc/nginx/nginx_private_key.pem
+      - /home/ubuntu/certs/kibana_certificate.pem:/home/kibana_certificate.pem
+      - /home/ubuntu/certs/kibana_private_key.pem:/home/kibana_private_key.pem
     deploy:
       placement:
         constraints:

@@ -37,11 +37,10 @@ do
     if [ ! -z "$node_role" ];then
 
         # Now, get the IP address of that node
-        # Get the line with 2377 (This is the port that Docker communicates with other nodes). Hence, this line will have IP address (i.e. x.x.x.x:2377)
         # Remove all double quotes
         # Regex that IP address boi!
-        IP=`sudo docker node inspect $hostname | grep "2377" | sed 's/"//g' | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b"`
-
+        # Get the one unique IP Address
+        IP=`sudo docker node inspect $hostname | sed 's/"//g' | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | uniq`
         echo "$IP"
     fi
 done

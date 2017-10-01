@@ -18,7 +18,7 @@ services:
        - pkey_password
        - pkey_file
     extra_hosts: 
-      - "elasticsearch:10.11.1.24"
+      - "elasticsearch:10.11.1.5"
    ui:
      image: perplexedgamer/ui:v5
      volumes:
@@ -32,9 +32,9 @@ services:
      ports:
        - 8888:8888
      environment:
-       HOST_IP : "10.12.22.2"
+       HOST_IP : "10.11.1.6"
        HOST_PORT : "8888"
-       ELASTIC_IP : "10.11.1.24"
+       ELASTIC_IP : "10.11.1.5"
        MICRO : "/home/ubuntu/Elascale_secure/config/microservices.ini"
        MACRO : "/home/ubuntu/Elascale_secure/config/macroservices.ini"
        SELF_CERT : "/home/ubuntu/Elascale_secure/certs/elascale_ui_certificate.pem"
@@ -44,7 +44,7 @@ services:
        PASSWORD : "savi_elascale"
        PYTHONUNBUFFERED : "1"
      extra_hosts: 
-       - "elasticsearch:10.11.1.24"
+       - "elasticsearch:10.11.1.5"
 secrets:
    pkey_password:
      file: /home/ubuntu/Elascale_secure/pass_key/pass_key_passphrase.txt

@@ -12,7 +12,7 @@ ELASTIC_IP="$1"
 SCRIPTS_DIR="/home/ubuntu/Elascale_secure"
 COMPOSE_DIR="$SCRIPTS_DIR/docker_compose"
 CONFIG_DIR="$SCRIPTS_DIR/config"
-CONFIG_DIR="$SCRIPTS_DIR/certs"
+CERTS_DIR="$SCRIPTS_DIR/certs"
 THIS_NODE_HOSTNAME=`hostname`
 ADD_HOST_CMD="echo '$ELASTIC_IP elasticsearch' | sudo tee -a /etc/hosts > /dev/null"
 
@@ -56,6 +56,9 @@ do
     
     # Create /home/ubuntu/certs folder to store elasticsearch_certificate.pem
     sudo docker-machine ssh $hostname 'sudo mkdir /home/ubuntu/certs' 
+
+    # Give appropriate chown permissions for the certs directory
+    sudo docker-machine ssh $hostname 'sudo chown -R ubuntu:ubuntu ~/certs'
 
     # send elasticsearch_certificate.pem to the node
     sudo docker-machine scp $CERTS_DIR/elasticsearch_certificate.pem $hostname:~/certs
