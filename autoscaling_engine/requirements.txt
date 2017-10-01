@@ -1,0 +1,5 @@
+elasticsearch
+configparser
+tqdm
+paramiko
+spur

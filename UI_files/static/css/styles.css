@@ -1,0 +1,39 @@
+#view-source {
+  position: fixed;
+  display: block;
+  right: 0;
+  bottom: 0;
+  margin-right: 40px;
+  margin-bottom: 40px;
+  z-index: 900;
+}
+
+#basic_usage {
+  font-size: 20px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+#basic_info{
+  padding-left: 5%;
+}
+
+#cloud_icon{
+  font-size: 65px;
+}
+
+#cloud_icon_2{
+  font-size: 65px;
+  padding-right: 10px;
+  margin-left: -20px;
+}
+
+#dialog_warning{
+  width: 90%;
+  margin: 0 auto;
+  background-color: #00bcd4;
+  padding: 16px;
+  border-radius: 2px;
+  color: #ffffff;
+  font-size: 18px;
+}
