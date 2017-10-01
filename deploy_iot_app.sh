@@ -27,7 +27,16 @@ label_key="loc"
 for host in "${HOSTNAMES[@]}"
 do
     label_value=`echo "${host#*-}"`
-    sudo $SCRIPTS_DIR/./provision_vm.sh $host $username $password $label_key $label_value
+ 
+    check_node=`sudo docker node ls | grep "$host"`
+
+    # Check if node exists before provisioning 
+    if [[ -z $check_node ]];then
+        echo "Node does not exist. Start provisioning..."
+        sudo $SCRIPTS_DIR/./provision_vm.sh $host $username $password $label_key $label_value
+    else
+       echo "Node exists!"
+    fi 
 done
 
 echo "Created all the worker nodes needed for IoT App deployment. Preparing for configuration..."
