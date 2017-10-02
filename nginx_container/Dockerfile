@@ -1,4 +1,4 @@
-FROM savi-nginx:v2 
+FROM perplexedgamer/savi-nginx:v2 
 
 WORKDIR /home
 

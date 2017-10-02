@@ -18,7 +18,7 @@ services:
         constraints:
           - node.labels.role == monitor
     extra_hosts: 
-      - "elasticsearch:10.11.1.5"
+      - "elasticsearch:10.11.1.15"
     networks:
       net:
   nginx:
@@ -27,8 +27,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /home/ubuntu/config/nginx.conf:/etc/nginx/nginx.conf
       - /home/ubuntu/config/.htpasswd:/etc/nginx/.htpasswd
-      - /home/ubuntu/certs/elasticsearch_certificate.pem:/etc/nginx/nginx_certificate.pem
-      - /home/ubuntu/certs/elasticsearch_private_key.pem:/etc/nginx/nginx_private_key.pem
+      - /home/ubuntu/certs/elasticsearch_certificate.pem:/etc/nginx/elasticsearch_certificate.pem
+      - /home/ubuntu/certs/elasticsearch_private_key.pem:/etc/nginx/elasticsearch_private_key.pem
       - /home/ubuntu/certs/kibana_certificate.pem:/home/kibana_certificate.pem
       - /home/ubuntu/certs/kibana_private_key.pem:/home/kibana_private_key.pem
     deploy:

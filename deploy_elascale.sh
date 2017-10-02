@@ -50,7 +50,7 @@ echo "Created Certificates for Elasticsearch, Kibana and the Elascale UI"
 # Create Basic authentication for Kibana UI
 sudo htpasswd -b -c /home/ubuntu/Elascale_secure/config/.htpasswd $KIBANA_USERNAME $KIBANA_PASSWORD
 
-$SCRIPTS_DIR/./deploy_ek.sh $ELASTIC_IP
+$SCRIPTS_DIR/./deploy_ek.sh $ELASTIC_IP $VM_NAME
 
 echo "Deployed Elasticsearch and Kibana. Preparing to import dashboards and templates"
 

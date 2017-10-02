@@ -5,40 +5,32 @@ import time
 client = docker.from_env()
 
 # This is to check whether both Elasticsearch and Kibana are up and running
-service_list = []
+net_list = []
 
 # This is to get their internal IP addrs
-ip_list = []
+ip_dict = {}
 
 # Run forever, waiting for Elasticsearch and kibana to be up and running
 while 1:
 
-    for srv in client.services.list():
-        service_list.append(client.services.get(srv.id).name)
+    for net in client.networks.list():
+        # Network must contain the keyword 'monitor'
+        if "monitor" in client.networks.get(net.id).name:
 
-    if any("elasticsearch" in s for s in service_list) and any("kibana" in s for s in service_list):
+            for cont in client.containers.list():
+
+                cont_id = cont.id
+
+                if "elasticsearch" in client.containers.get(cont_id).name and "elasticsearch" not in ip_dict:
+                    ip_dict["elasticsearch"] = client.containers.get(cont_id).attrs['NetworkSettings']['Networks'][net.name]['IPAMConfig']['IPv4Address']
+
+                if "kibana" in client.containers.get(cont_id).name and "kibana" not in ip_dict:
+                    ip_dict["kibana"] = client.containers.get(cont_id).attrs['NetworkSettings']['Networks'][net.name]['IPAMConfig']['IPv4Address']
+
+    if len(ip_dict) == 2:
         break
     else:
-        print "Both services not up and running...Wait for 5 seconds to recheck..."
-        print str(service_list)
+        time.sleep(5)
 
-    time.sleep(5)
-
-print "Both are up and running!"
-
-# When both are running, get their IP addresses
-for srv in client.services.list():
-
-    # Get hostname of service
-    name = client.services.get(srv.id).name
-
-    ip = client.services.get(srv.id).attrs['Endpoint']['VirtualIPs'][0]['Addr'].split("/")[0]
-
-    if "elasticsearch" in name:
-        ip_list.append("ELASTICSEARCH:"+str(ip))
-    elif "kibana" in name:
-        ip_list.append("KIBANA:"+str(ip))
-
-# It doesn't which order it prints, I grep it using the keywords (i.e ELASTICSEARCH AND KIBANA)
-print ip_list[0]
-print ip_list[1]
+print "ELASTICSEARCH:"+str(ip_dict["elasticsearch"])
+print "KIBANA:"+str(ip_dict["kibana"])

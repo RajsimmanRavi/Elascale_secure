@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Check if arguments given
-if [[ $# -ne 1 ]] ; then
-    echo "Error: you need to provide the IP address of Elasticsearch's Host"
+if [[ $# -ne 2 ]] ; then
+    echo "Error: you need to provide the IP address of Elasticsearch Host and the hostname of the monitor VM"
     exit 1
 fi
 
@@ -12,17 +12,19 @@ CONFIG_DIR="$SCRIPTS_DIR/config/"
 CERTS_DIR="$SCRIPTS_DIR/certs/"
 
 ELASTIC_IP="$1"
+MONITOR_VM="$2"
 
 # Now, replace the IP in ek-compose.yml to the ELASTIC_IP
 sed -i "s/\"elasticsearch:.*\"/\"elasticsearch:$ELASTIC_IP\"/g" $COMPOSE_DIR/ek-compose.yml
 
 echo "sending certs directory to the monitor VM"
-# Send the certs directory to the monitor VM
-sudo docker-machine scp -r $CONFIG_DIR monitor:~
+sudo docker-machine scp -r $CONFIG_DIR $MONITOR_VM:~
 
 echo "sending config directory to the monitor VM"
-# Send the config directory to the monitor VM
-sudo docker-machine scp -r $CERTS_DIR monitor:~
+sudo docker-machine scp -r $CERTS_DIR $MONITOR_VM:~
+
+echo "Changing setting for monitor VM to increase virtual memory (need for Elasticsearch)"
+sudo docker-machine ssh $MONITOR_VM "sudo sysctl -w vm.max_map_count=262144"
 
 echo "Deploying EK services"
 
@@ -43,6 +45,7 @@ then
 
     $SCRIPTS_DIR/sleep_bar.sh 10
 
+    # Name of the stack must contain the keyword 'monitor' in order for nginx to work
     sudo docker stack deploy -c $COMPOSE_DIR/ek-compose.yml EK_monitor
 fi
 
