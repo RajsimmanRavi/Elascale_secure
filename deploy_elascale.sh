@@ -9,7 +9,7 @@ KIBANA_USERNAME="elascale"
 KIBANA_PASSWORD="savi_elascale"
 
 #Command-line arguments for provisioning VM
-VM_NAME="monitor"
+VM_NAME="iot-monitor"
 LABEL_KEY="role" # We want to label the node role=monitor
 LABEL_VALUE="monitor" # same as above
 
