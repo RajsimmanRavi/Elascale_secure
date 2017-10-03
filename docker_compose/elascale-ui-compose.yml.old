@@ -1,24 +1,6 @@
 version: '3.1'
 
 services:
-   v2:
-     image: perplexedgamer/elascale_v2:v2.3
-     volumes:
-       - /home/ubuntu/Elascale_secure/config:/home/ubuntu/Elascale_secure/config
-       - /home/ubuntu/Elascale_secure/certs:/home/ubuntu/Elascale_secure/certs
-     deploy:
-       placement:
-         constraints:
-           - node.labels.role == master
-     environment:
-       PYTHONUNBUFFERED :   "1"
-       PKEY_PASSWORD : /run/secrets/pkey_password
-       PKEY_FILE : /run/secrets/pkey_file
-     extra_hosts: 
-       - "elasticsearch:10.11.1.10"
-     secrets:
-       - pkey_password
-       - pkey_file
    ui:
      image: perplexedgamer/ui:v5
      volumes:
@@ -45,8 +27,26 @@ services:
        PYTHONUNBUFFERED : "1"
      extra_hosts: 
        - "elasticsearch:10.11.1.10"
+   v2:
+     image: perplexedgamer/elascale_v2:v2.2
+     volumes:
+       - /home/ubuntu/Elascale_secure/config:/home/ubuntu/Elascale_secure/config
+       - /home/ubuntu/Elascale_secure/certs:/home/ubuntu/Elascale_secure/certs
+     deploy:
+       placement:
+         constraints:
+           - node.labels.role == master
+     environment:
+       PYTHONUNBUFFERED :   "1"
+       PKEY_PASSWORD    : /run/secrets/pkey_password
+       PKEY_FILE	    : /run/secrets/pkey_file
+    extra_hosts: 
+      - "elasticsearch:10.11.1.10"
+     secrets:
+       - pkey_password
+       - pkey_file
 secrets:
-  pkey_password:
-    file: /home/ubuntu/Elascale_secure/pass_key/pass_key_passphrase.txt
-  pkey_file:
-    file: /home/ubuntu/Elascale_secure/pass_key/pass_key
+   pkey_password:
+     file: /home/ubuntu/Elascale_secure/pass_key/pass_key_passphrase.txt
+   pkey_file:
+     file: /home/ubuntu/Elascale_secure/pass_key/pass_key

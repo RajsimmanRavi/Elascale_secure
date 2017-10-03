@@ -4,7 +4,7 @@ import configparser
 from elasticsearch import Elasticsearch
 
 config = configparser.ConfigParser()
-config_name = os.path.realpath('./../conf') + "/config.ini"
+config_name = os.path.realpath('./../config') + "/config.ini"
 config.read(config_name)
 
 ca_cert = str(config.get('elasticsearch', 'ca_cert'))

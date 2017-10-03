@@ -78,8 +78,7 @@ class MainHandler(BaseHandler):
         #Eg. kibana_links["title_of_dashboard"] = "http://..."
         kibana_links = get_kibana_links(elastic_ip)
 
-
-        self.render("index.html", micro_services=micro, macro_services=macro, micro_config=micro_config, macro_config=macro_config, ip_addr=ip_addr, kibana_links=kibana_links)
+        self.render("index.html", micro_services=micro, macro_services=macro, micro_config=micro_config, macro_config=macro_config, ip_addr=ip_addr, kibana_links=kibana_links, elastic_ip=elastic_ip)
         sys.stdout.flush()
 
 class LoginHandler(BaseHandler):
@@ -121,17 +120,18 @@ class Application(tornado.web.Application):
 def main():
 
     """
-    os.environ['HOST_IP']       = "10.11.1.24"
+    os.environ['HOST_IP']       = "10.11.1.6"
     os.environ['HOST_PORT']     = "8888"
-    os.environ['ELASTIC_IP']    = "10.11.1.24"
-    os.environ['MICRO']         = "/home/ubuntu/Elascale/config/microservices.ini"
-    os.environ['MACRO']         = "/home/ubuntu/Elascale/config/macroservices.ini"
-    os.environ['SELF_CERT']     = "/home/ubuntu/Elascale_UI/certs/elascaleUI_certificate.pem"
-    os.environ['SELF_KEY']      = "/home/ubuntu/Elascale_UI/certs/elascale_ui_private_key.pem"
-    os.environ['NGINX_CERT']    = "/etc/nginx/ssl/elasticsearch_certificate.pem"
-    os.environ['USERNAME']      = "xxx"
-    os.environ['PASSWORD']      = "xxx"
+    os.environ['ELASTIC_IP']    = "10.11.1.10"
+    os.environ['MICRO']         = "/home/ubuntu/Elascale_secure/config/microservices.ini"
+    os.environ['MACRO']         = "/home/ubuntu/Elascale_secure/config/macroservices.ini"
+    os.environ['SELF_CERT']     = "/home/ubuntu/Elascale_secure/certs/elascale_ui_certificate.pem"
+    os.environ['SELF_KEY']      = "/home/ubuntu/Elascale_secure/certs/elascale_ui_private_key.pem"
+    os.environ['NGINX_CERT']    = "/home/ubuntu/Elascale_secure/certs/elasticsearch_certificate.pem"
+    os.environ['USERNAME']      = "xx"
+    os.environ['PASSWORD']      = "xx"
     """
+
     http_server = tornado.httpserver.HTTPServer(Application(), ssl_options={
         "certfile": os.environ['SELF_CERT'],
         "keyfile": os.environ['SELF_KEY'],

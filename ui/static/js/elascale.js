@@ -1,3 +1,29 @@
+/*
+$(document).ready(function() {
+  
+  $.ajax({
+    type: "GET",
+    xhrFields: {
+        withCredentials: true
+    },
+    dataType: "jsonp",
+    contentType: "application/javascript",
+    async: false,
+    crossDomain: true,
+    url: "https://10.11.1.10:5601",
+    success: function (jsonData) {
+        console.log(jsonData);
+    },
+    error: function (request) {
+        console.log(request.responseText);
+    },
+    username: "elascale",
+    password: "savi_elascale",
+  });
+  
+});
+*/
+
 /* Bunch of constants */
 var config_params = ["cpu_up_lim", "mem_up_lim", "cpu_down_lim", "up_step", "down_step", "max_replica", "min_replica", "auto_scale"];
 

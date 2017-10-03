@@ -160,8 +160,8 @@ def insert_id_url(dash_title, dash_id, elastic_ip_addr):
     4. All tables
 """
 def get_kibana_links(elastic_ip_addr):
-    elastic_ip_addr = "elasticsearch"
-    req = requests.get("https://"+elastic_ip_addr+":9200/.kibana/dashboard/_search", verify=os.environ['NGINX_CERT'])
+    # hostname has to be 'elasticsearch' in order for SSL authentication
+    req = requests.get("https://elasticsearch:9200/.kibana/dashboard/_search", verify=os.environ['NGINX_CERT'])
     output = req.json()
 
     output_dict = {}
@@ -180,7 +180,6 @@ def get_kibana_links(elastic_ip_addr):
             #get id of the dashboard
             dash_id = dash["_id"]
 
-            #append to output dict
             output_dict[dash_title] = insert_id_url(dash_title, dash_id, elastic_ip_addr)
 
     sys.stdout.flush()

@@ -12,7 +12,7 @@ Default Global variables initialized here
 """
 monitoring_interval = 30  # in seconds;
 
-config_path = os.path.realpath('./../conf')
+config_path = os.path.realpath('./../config')
 micro_config_file_name = config_path + "/microservices.ini"
 macro_config_file_name = config_path + "/macroservices.ini"
 

@@ -50,6 +50,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <!-- I modified the iframe inside this css, hence it's modified -->
     <link rel="stylesheet" href="{{ static_url('css/material.blue-deep_purple.min.css') }}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script src="{{ static_url('js/elascale.js') }}"></script>
     <link rel="stylesheet" href="{{ static_url('css/styles.css') }}" />
@@ -75,11 +76,11 @@
       
       <main class="mdl-layout__content">
         <div class="mdl-layout__tab-panel is-active" id="host_container_stats">
-          <!--<div id="basic_info" style="padding-top: 20px;">
+          <div id="basic_info" style="padding-top: 20px;">
             <div id="dialog_warning">
-              <b>Note:</b> In order to deploy the auto-scaling system (Elascale), you need to finalize the Microservices and Macroservices configuration (on the next two tabs). You can simply submit one change in order to begin the deployment.
+              <b>Note:</b> In order to view the dashboard, you need to authenticate to the Kibana Dashboard. Please visit the site by using the following link: <a target="_blank" href="https://{{ elastic_ip }}:5601">https://kibana:5601</a>. After successful authentication, you can refresh this page to view the dashboard. 
             </div>
-          </div>-->
+          </div>
           <div class="mdl-grid" style="padding-left: 5%;">
             <div class="mdl-cell mdl-cell--6-col mdl-card mdl-shadow--6dp">
               <div class="mdl-card__title">

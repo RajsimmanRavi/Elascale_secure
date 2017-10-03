@@ -7,7 +7,7 @@ from tqdm import tqdm
 import configparser
 
 # I kinda hate doing this. But, I'll change this later
-config_path = os.path.realpath('./../conf')
+config_path = os.path.realpath('./../config')
 config_name = config_path + "/config.ini"
 
 """

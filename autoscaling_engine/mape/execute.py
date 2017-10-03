@@ -6,7 +6,7 @@ import configparser
 
 import plan
 
-config_path = os.path.realpath('./../conf')
+config_path = os.path.realpath('./../config')
 config_name = config_path + "/config.ini"
 micro_config_name = config_path + "/microservices.ini"
 macro_config_name = config_path + "/macroservices.ini"

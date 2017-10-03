@@ -70,7 +70,7 @@ sleep 2
 #Now, let's start the Elascale Engine and the UI
 
 #First, change the config.ini file to update the IP addresses of the hosts and Elastic IPs
-python $SCRIPTS_DIR/change_config_ini.py $MASTER_IP $ELASTIC_IP
+python $SCRIPTS_DIR/change_config_ini.py $MASTER_IP $ELASTIC_IP $HOSTNAME
 
 # Change the elasticsearch IP address on the elascale-ui-compose.yml 
 sed -i "s/elasticsearch:.*/elasticsearch:$ELASTIC_IP\"/g" $COMPOSE_DIR/elascale-ui-compose.yml
