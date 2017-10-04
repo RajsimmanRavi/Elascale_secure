@@ -20,8 +20,7 @@ sudo sed -i "s/127.0.0.1 .*/127.0.0.1 localhost $HOSTNAME/g" /etc/hosts
 sudo apt-get update
 
 #Install some prerequisite tools (if needed)
-sudo apt-get sudo apt-get install apt-transport-https ca-certificates curl software-properties-common
-sudo apt-get install apt-transport-https ca-certificates software-properties-common
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
 
 #Check if Docker is already installed
 check_docker=`command -v docker`
@@ -78,25 +77,21 @@ fi
 #Initialize swarm and make the current node as swarm manager
 sudo docker swarm init
 
+#Let's Label this host as master
+sudo docker node update --label-add role=master $HOSTNAME
+
+#Check if SCRIPTS DIR exists. If not, fetch the scripts from the GitHub
 if [ ! -d "$SCRIPTS_DIR" ]
 then
-    #********** Create Elascale_secure directory and fetch the scripts ****************
-    sudo mkdir $SCRIPTS_DIR
-    
-    #********** Create certs directory for storing certificates ****************
-    sudo mkdir $SCRIPTS_DIR/certs
-    
-    echo "Created Scripts directory at /home/ubuntu/Elascale_secure"
-
-
-fi
-
-#Check is scripts is installed on the machine from github
-
-if [ ! -f $SCRIPTS_DIR"/create_nodes.sh" ]
-then 
+    #********** Fetch the scripts from GitHub ****************
     sudo git clone https://github.com/RajsimmanRavi/Elascale_secure.git $SCRIPTS_DIR
     echo "Cloned scripts from Github repo"
+    
+    #Just to be sure, make chown ubuntu (not root) for SCRIPTS DIR directory
+    sudo chown -R ubuntu:ubuntu $SCRIPTS_DIR 
+
+    #********** Create certs directory for storing certificates ****************
+    sudo mkdir $SCRIPTS_DIR/certs
 fi
 
 #*********** Install elasticdump *************
@@ -140,11 +135,7 @@ else
 
 fi
 
-#Just to be sure, make chown ubuntu (not root) for Elascale_secure directory
-sudo chown -R ubuntu:ubuntu $SCRIPTS_DIR 
-
 #************ Create SSH KEYPAIR for Elascale Engine to log into swarm-master for performing scaling commands
-
 if [ ! -d "$PASS_KEY_DIR" ] 
 then 
     #create the dir
@@ -164,9 +155,5 @@ then
 else 
     echo "$PASS_KEY_DIR has been already created. Skipping keypair configuration..."
 fi
-
-#************ Let's Label this host as master ***************
-
-sudo docker node update --label-add role=master $HOSTNAME
 
 echo "Everything is set. Now, you can start creating the platform for application development"
