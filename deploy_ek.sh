@@ -35,18 +35,26 @@ echo "Waiting for Elasticsearch to be up and running"
 $SCRIPTS_DIR/sleep_bar.sh 60
 
 #check if succeeded or failed. If it failed to import, re-deploy EK again
-port_open=`nc -w 5 $ELASTIC_IP 9200 </dev/null; echo $?`    
 
-if [[ $port_open == "1" ]]
-then
-    echo "Failed to deploy Elasticsearch and Kibana because Elasticsearch port (9200) not open"
-    echo "Hence, re-deploying EK"
-    sudo docker stack rm EK_monitor
+#check_link=$(curl https://$ELASTIC_IP:$ELASTIC_PORT --insecure)
 
-    $SCRIPTS_DIR/sleep_bar.sh 10
-
-    # Name of the stack must contain the keyword 'monitor' in order for nginx to work
-    sudo docker stack deploy -c $COMPOSE_DIR/ek-compose.yml EK_monitor
-fi
+# If you get a response with test "You know, for Search". Then, it's up and running  
+#if [[ "$check_link" == *"You Know, for Search"* ]]
+#then
+#    echo "Elasticsearch is up and running. Starting import ..." 
+#    break
+#else 
+#    echo "Elasticsearch is not up yet. Retrying after 5 seconds..."
+#    sleep 5
+#    let COUNTER=COUNTER+5
+#fi
+#    echo "Failed to deploy Elasticsearch and Kibana because Elasticsearch port (9200) not open"
+#    echo "Hence, re-deploying EK"
+#    sudo docker stack rm EK_monitor
+#
+#    $SCRIPTS_DIR/sleep_bar.sh 10
+#
+#    # Name of the stack must contain the keyword 'monitor' in order for nginx to work
+#    sudo docker stack deploy -c $COMPOSE_DIR/ek-compose.yml EK_monitor
 
 echo "Completed ELK deployment"

@@ -19,20 +19,20 @@ do
         exit 0
     fi 
 
-    #Checks if port open. If 0 -> open, 1 -> closed
-    port_open=`nc -w 5 $ELASTIC_IP $ELASTIC_PORT </dev/null; echo $?`    
+    check_link=$(curl https://$ELASTIC_IP:$ELASTIC_PORT --insecure)
     
-    if [[ $port_open == "1" ]]
+    # If you get a response with test "You know, for Search". Then, it's up and running  
+    if [[ "$check_link" == *"You Know, for Search"* ]]
     then
-        echo "Port is closed. Retrying after 5 seconds"
+        echo "Elasticsearch is up and running. Starting import ..." 
+        break
+    else 
+        echo "Elasticsearch is not up yet. Retrying after 5 seconds..."
         sleep 5
         let COUNTER=COUNTER+5
-    else 
-        echo "Port is open! Staring import..."
-        break
     fi
 done
- 
+
 NODE_TLS_REJECT_UNAUTHORIZED=0 elasticdump --input=$CONFIG_DIR/dash_templates/index_analyzer.json --output=https://$ELASTIC_IP:$ELASTIC_PORT/.kibana --type=analyzer
 echo "Done Importing Analyzer"
 NODE_TLS_REJECT_UNAUTHORIZED=0 elasticdump --input=$CONFIG_DIR/dash_templates/index_mapping.json --output=https://$ELASTIC_IP:$ELASTIC_PORT/.kibana --type=mapping
