@@ -1,4 +1,4 @@
-version: "3"
+version: "3.2"
 services:
   elasticsearch:
     image: perplexedgamer/elastic-savi:latest
@@ -18,7 +18,7 @@ services:
         constraints:
           - node.labels.role == monitor
     extra_hosts: 
-      - "elasticsearch:10.11.1.12"
+      - "elasticsearch:10.2.1.17"
     networks:
       net:
   nginx:
@@ -36,8 +36,17 @@ services:
         constraints:
           - node.labels.role == monitor
     ports:
-      - 9200:9200
-      - 5601:5601
+      -  target: 9200 
+         published: 9200
+         protocol: tcp
+         mode: host   
+      -  target: 5601 
+         published: 5601
+         protocol: tcp
+         mode: host   
+    #ports:
+    #  - 9200:9200
+    #  - 5601:5601
     networks:
       net:
 networks:

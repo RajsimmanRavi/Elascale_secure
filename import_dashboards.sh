@@ -13,7 +13,7 @@ COUNTER=0
 for (( ; ; ))
 do
     #If port is not open for more than 60 seconds, re-deploy EK
-    if [[ $COUNTER -gt 60 ]]
+    if [[ $COUNTER -gt 120 ]]
     then
         echo "failed"
         exit 0

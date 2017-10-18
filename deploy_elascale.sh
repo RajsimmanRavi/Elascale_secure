@@ -86,8 +86,8 @@ echo "Starting Elascale Engine deployment"
 
 sudo docker stack deploy -c $COMPOSE_DIR/elascale-ui-compose.yml elascale
 
-echo "Deployed Everything. You can view the Elascale UI at: http://$MASTER_IP:8888"
-echo "For more detailed information, you can view the Kibana UI at: http://$ELASTIC_IP:5601"
+echo "Deployed Everything. You can view the Elascale UI at: https://$MASTER_IP:8888"
+echo "For more detailed information, you can view the Kibana UI at: https://$ELASTIC_IP:5601"
 
 echo "Please wait for a few minutes for all the services to be up and running. You can verify it by using the followning command: sudo docker service ls"
 
