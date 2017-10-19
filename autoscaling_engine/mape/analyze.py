@@ -106,7 +106,7 @@ if __name__ == "__main__":
     """ This is just for testing purposes locally. If finalized, you can remove these initializations """
     """
     os.environ["PYTHONUFFERED"] = "0"
-    os.environ["PKEY_PASSWORD"] = "/home/ubuntu/Elascale/pass_key/pass_key_passphrase.txt"
-    os.environ["PKEY_FILE"] = "/home/ubuntu/Elascale/pass_key/pass_key"
+    os.environ["PKEY_PASSWORD"] = "/home/ubuntu/Elascale_secure/pass_key/pass_key_passphrase.txt"
+    os.environ["PKEY_FILE"] = "/home/ubuntu/Elascale_secure/pass_key/pass_key"
     """
     main()

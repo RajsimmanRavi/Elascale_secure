@@ -52,6 +52,7 @@ def get_shell():
 
 # This function basically executes the command on the ssh connection
 # Using 'with' allows us to execute the command and close the connection
+
 def run_command(command):
 
     try:
@@ -62,13 +63,13 @@ def run_command(command):
         with shell:
             result = shell.run(cmd_list, store_pid="True", allow_error=True, encoding="utf8")
 
-        #print(str(result.output))
     except Exception as e:
         print(str(e))
         exit(1)
 
     else:
         return result
+
 
 # This function is used to provison a vm.
 # It uses Paramiko client because spur is very fidgety when deploying a VM.
@@ -94,7 +95,7 @@ def provision_vm(command):
         for line in stdout:
             print('... ' + line.strip('\n'))
         client.close()
-    except SSHException as e:
+    except paramiko.SSHException as e:
         print(str(e))
         pass
 

@@ -65,7 +65,7 @@ def docker_machine_scale(vm_name, scale_type):
             value = label_key[key]
 
         # spur is very fidgety when creating VMs. It also does not have timeout flags
-        # Hence, we use paramiko client based function (provision_vm)
+        # Hence, we use paramiko client based function
         # Then, we check for any errors.
         # If in error, we remove that useless vm and re-create vm again.
         # If not, we break out of while loop
