@@ -1,17 +1,17 @@
 version: '3.2'
 
 services:
-   v2:
-     image: perplexedgamer/elascale_v2:v2.3
+   secure:
+     image: perplexedgamer/elascale_secure:latest
      volumes:
-       - /home/ubuntu/Elascale_secure/config:/home/ubuntu/Elascale_secure/config
-       - /home/ubuntu/Elascale_secure/certs:/home/ubuntu/Elascale_secure/certs
+       - /home/ubuntu/Elascale_secure/config:/Elascale_secure/config
+       - /home/ubuntu/Elascale_secure/certs:/Elascale_secure/certs
      deploy:
        placement:
          constraints:
            - node.labels.role == master
      environment:
-       PYTHONUNBUFFERED :   "1"
+       PYTHONUNBUFFERED :   "0"
        PKEY_PASSWORD : /run/secrets/pkey_password
        PKEY_FILE : /run/secrets/pkey_file
      extra_hosts: 
