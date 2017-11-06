@@ -20,7 +20,7 @@ services:
        - pkey_password
        - pkey_file
    ui:
-     image: perplexedgamer/ui:v5
+     image: perplexedgamer/ui:v6
      volumes:
        - /home/ubuntu/Elascale_secure/config:/home/ubuntu/Elascale_secure/config
        - /home/ubuntu/Elascale_secure/certs:/home/ubuntu/Elascale_secure/certs
