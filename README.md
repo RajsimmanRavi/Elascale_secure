@@ -3,7 +3,7 @@ Elascale with a little bit of security. This repo contains all the scripts requi
 
 All you need is a **m1.medium** flavored VM (based on OpenStack) with **Ubuntu 16-04** image. It may require Ubuntu 14-04 for other nodes (for later deployment).
 
-![alt text](https://github.com/RajsimmanRavi/Elascale_scripts/blob/master/Elascale_diagram.png)
+![alt text](https://github.com/RajsimmanRavi/Elascale_secure/blob/master/Elascale_secure.png)
 
 ## Steps for deployment ##
 
