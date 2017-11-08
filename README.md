@@ -5,6 +5,13 @@ All you need is a **m1.medium** flavored VM (based on OpenStack) with **Ubuntu 1
 
 ![alt text](https://github.com/RajsimmanRavi/Elascale_secure/blob/master/Elascale_secure.png)
 
+## Changes from the previous Elascale version ##
+
+    * Incorporated NGINX for access control and encryption
+    * HTTPS-based encrypted channels to prevent eavesdropping/information leakage
+    * Basic authentication for Elascale UI and Kibana
+    * XSRF protection for Elascale UI 
+
 ## Steps for deployment ##
 
 ### Deployment in an OpenStack Infrastructure ###
