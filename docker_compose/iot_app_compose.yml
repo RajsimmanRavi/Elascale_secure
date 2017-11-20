@@ -71,6 +71,9 @@ services:
       placement:
         constraints:
           - node.labels.loc == edge
+      restart_policy:
+        condition: on-failure
+        window: 120s
     environment:
       KAFKA_IP: 10.2.1.16
       CASS_IP: 10.2.1.12

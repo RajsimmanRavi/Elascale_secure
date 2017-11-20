@@ -1,5 +1,52 @@
 # Elascale_secure
-Elascale with a little bit of security
+Elascale with a little bit of security. This repo contains all the scripts required for Elascale deployment including a sample IoT application
+
+All you need is a **m1.medium** flavored VM (based on OpenStack) with **Ubuntu 16-04** image. It may require Ubuntu 14-04 for other nodes (for later deployment).
+
+![alt text](https://github.com/RajsimmanRavi/Elascale_secure/blob/master/Elascale_secure.png)
+
+## Changes from the previous Elascale version ##
+
+    * Incorporated NGINX for access control and encryption
+    * HTTPS-based encrypted channels to prevent eavesdropping/information leakage
+    * Basic authentication for Elascale UI and Kibana
+    * XSRF protection for Elascale UI 
+
+## Steps for deployment ##
+
+### Deployment in an OpenStack Infrastructure ###
+
+You can deploy Elascale on any OpenStack based infrastructure. You just need to edit the following snippet (located on provision_vm.sh) to your platform. **You don't need to edit anything if it's going to be deployed on SAVI platform.**
+
+```
+sudo docker-machine create --driver openstack \
+    --openstack-auth-url "xxxx" \
+    --openstack-insecure \
+    --openstack-flavor-name xxxx --openstack-image-name "Ubuntu-14-04" \
+    --openstack-tenant-name "xxxx" --openstack-region "xxxx" \
+    --openstack-sec-groups "xxxx" --openstack-ssh-user "ubuntu" \
+    --openstack-username $USERNAME --openstack-password $PASSWORD \
+    $VM_NAME
+```
+In fact, you can deploy on other non-OpenStack based platforms as well, as long it has the docker-machine drivers. 
+
+**Note:** We have not tested on any other platform, aside from SAVI infrastructure (which is based on OpenStack)
+
+### Ports Required ###
+
+The following ports need to be opened in the security-group for Elascale to be working properly. **The security group has been created on SAVI platform already.**
+
+| IP Protocol   | From Port  | To Port  |  Description     |
+| ------------- |:----------:|:--------:| ----------------:|
+| tcp           |     22     |    22    |   SSH            |
+| tcp           |     2376   |    2377  |   Docker Daemon  |
+| tcp           |     9200   |    9200  |   Elasticsearch  |
+| tcp           |     5601   |    5601  |   Kibana         |
+| tcp           |     2181   |    2181  |   Zookeeper      |
+| tcp           |     9092   |    9092  |   Kafka          |
+| tcp           |     9042   |    9042  |   Cassandra      |
+| tcp           |     8888   |    8888  |   Elascale UI    |
+| tcp           |     443    |    443   |   HTTPS          |
 
 ## Execute Installation Script
 
