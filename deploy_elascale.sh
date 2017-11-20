@@ -81,9 +81,9 @@ sed -i "s/HOST_IP :.*/HOST_IP : \"$MASTER_IP\"/g" $COMPOSE_DIR/elascale-ui-compo
 # Change ELASTIC_IP to point to ELASTIC_IP's IP Address
 sed -i "s/ELASTIC_IP :.*/ELASTIC_IP : \"$ELASTIC_IP\"/g" $COMPOSE_DIR/elascale-ui-compose.yml
 
+
 #Now, deploy the Elascale stack
 echo "Starting Elascale Engine deployment"
-
 sudo docker stack deploy -c $COMPOSE_DIR/elascale-ui-compose.yml elascale
 
 echo "Deployed Everything. You can view the Elascale UI at: https://$MASTER_IP:8888"

@@ -1,0 +1,112 @@
+import json
+from datetime import datetime
+import os
+import csv
+from anomaly_detector import detect_anomaly
+
+import warnings
+warnings.filterwarnings("ignore")
+
+DOCKBEAT_DIR="/tmp/dockbeat"
+DATASET_DIR="/tmp/anomaly_dataset/"
+
+data_files = ["cpu_dataset.csv", "network_rx_dataset.csv"]
+
+def write_to_file(f_name, data_list):
+    f = open(f_name,'a')
+
+    # Add Header
+    f.write("Date,Value")
+    f.write('\n')
+
+    # Add data
+    for line in data_list:
+        f.write(line)
+        f.write('\n')
+
+    f.close()
+
+def delete_old_file(f_name):
+    try:
+        os.remove(f_name)
+    except OSError:
+        pass
+
+# Gets all the data from the directory of files
+# Need service name to fetch only those data
+def get_all_data(dockbeat_dir, serv_name):
+
+    cpu_data = []
+    network_rx_data = []
+
+    # Get stats from all the files
+    stats = []
+
+    files = os.listdir(dockbeat_dir)
+
+    for f in files:
+        #if f == "dockbeat" or f == "dockbeat.1" or f == "dockbeat.2":
+        for line in open(dockbeat_dir+"/"+f, 'r'):
+            try:
+                load_data = json.loads(line)
+                if(any(d['value'] == serv_name for d in load_data["containerLabels"])):
+                    stats.append(load_data)
+            except Exception as e:
+                print("Found error on line: "+str(e))
+                print("ignoring...")
+                continue
+
+    for st in stats:
+        if "net" in st and (str(st["net"]["name"]) == "eth1"):
+            network_rx_data.append(st["@timestamp"]+","+str(st["net"]["rxPackets_ps"]))
+        elif "cpu" in st:
+            cpu_data.append(st["@timestamp"]+","+str(st["cpu"]["totalUsage"]))
+
+    return network_rx_data, cpu_data
+
+def sort_data(data_list):
+
+    format = "%Y-%m-%dT%H:%M:%S.%fZ"
+    sorted_lines = sorted(data_list, key=lambda line: datetime.strptime(line.split(",")[0], format))
+
+    return sorted_lines
+
+def parse_dockbeat(serv_name):
+
+    for data_file in data_files:
+        delete_old_file(DATASET_DIR+data_file)
+        print("Deleted %s" % DATASET_DIR+data_file)
+
+    network_rx_data, cpu_data = get_all_data(DOCKBEAT_DIR, serv_name)
+    print("Got all Stats!!")
+    print(len(cpu_data))
+
+    # sort values
+    network_rx_data = sort_data(network_rx_data)
+    cpu_data = sort_data(cpu_data)
+
+    # write to file
+    write_to_file(DATASET_DIR+"cpu_dataset.csv", cpu_data)
+    write_to_file(DATASET_DIR+"network_rx_dataset.csv", network_rx_data)
+
+    print("finished writing to files!")
+
+    cpu_report = detect_anomaly(DATASET_DIR+"cpu_dataset.csv")
+    net_rx_report = detect_anomaly(DATASET_DIR+"network_rx_dataset.csv")
+    report = "CPU REPORT: "+str(cpu_report)+"\nNETWORK REPORT: "+str(net_rx_report)
+
+    print(report)
+
+    # Evaluate the signals
+    if cpu_report == False and net_rx_report == False:
+        # Looks ok. Did not cross the difference of 0.45
+        return False
+    elif cpu_report != False and net_rx_report != False:
+        # Clearly somehting is off! Both signals point anomalies
+        return True
+    else:
+        # One of the signlas point anomalies. Just ignore
+        return False
+
+if __name__=="__main__":
+    parse_dockbeat("http_web")

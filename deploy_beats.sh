@@ -19,6 +19,9 @@ ADD_HOST_CMD="echo '$ELASTIC_IP elasticsearch' | sudo tee -a /etc/hosts > /dev/n
 #This is for deploying the dockbeat
 VOLUME_DIR="/volumes/dockbeat-logs"
 
+#This is for logging dockbeats on host machine
+TEMP_DIR="/tmp/dockbeat"
+
 # Ok, the command is huge. Let me break it down.
 # "docker node ls" gives us the nodes and it's hostnames.
 # awk {print $2" "$3} gives us only the hostnames.
@@ -53,6 +56,9 @@ do
 
     # we also need to make sure /volumes/dockbeat-logs/ is in each node
     sudo docker-machine ssh $hostname 'sudo mkdir -p /volumes/dockbeat-logs' 
+    
+    # we also need to make sure /tmp/dockbeat is in each node
+    sudo docker-machine ssh $hostname 'sudo mkdir -p /tmp/dockbeat' 
     
     # Create /home/ubuntu/certs folder to store elasticsearch_certificate.pem
     sudo docker-machine ssh $hostname 'sudo mkdir /home/ubuntu/certs' 
@@ -89,11 +95,17 @@ echo "Done putting files to the home folder for this node: $THIS_NODE_HOSTNAME"
 
 if [ ! -d "$VOLUME_DIR" ]
 then
-    #********** Create Elascale directory and fetch the scripts ****************
+    #********** Create Volume directory on the master node as well ****************
     sudo mkdir -p $VOLUME_DIR
     echo "Creating $VOLUME_DIR for dockbeat in the host"
 fi       
 
+if [ ! -d "$TEMP_DIR" ]
+then
+    #********** Create Temp directory on the master node as well ****************
+    sudo mkdir -p $TEMP_DIR
+    echo "Creating $TEMP_DIR for dockbeat in the host"
+fi       
 #Edit the beats-compose.yml file to replace the Elasticsearch IP 
 sed -i "s/elasticsearch:.*/elasticsearch:$ELASTIC_IP\"/g" $COMPOSE_DIR/beats-compose.yml
 

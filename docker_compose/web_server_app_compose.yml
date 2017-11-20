@@ -1,0 +1,14 @@
+version: '3.2'
+services:
+  web:
+    image: nginx
+    ports:
+    #  - "8080:80"
+      - target: 80
+        published: 8080
+        protocol: tcp
+        mode: host
+    #deploy:
+    #  placement:
+    #    constraints:
+    #      - node.Labels.loc == web

@@ -33,10 +33,10 @@ VM_FLAVOR="m1.medium"
 if [[ -z $check_vm ]]
 then
     sudo docker-machine create --driver openstack \
-      --openstack-auth-url "http://iam.savitestbed.ca:5000/v2.0/" \
+      --openstack-auth-url "http://iamv3.savitestbed.ca:5000/v2.0" \
       --openstack-insecure \
       --openstack-flavor-name $VM_FLAVOR --openstack-image-name "Ubuntu-14-04" \
-      --openstack-tenant-name "demo2" --openstack-region "EDGE-TR-1" \
+      --openstack-tenant-name "demo2" --openstack-region "CORE-2" \
       --openstack-sec-groups "savi-iot" --openstack-ssh-user "ubuntu" \
       --openstack-username $USERNAME --openstack-password $PASSWORD \
       $VM_NAME

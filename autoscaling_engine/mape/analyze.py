@@ -6,11 +6,12 @@ import monitor
 import plan
 import execute
 import util
+from parse_dockbeat import *
 
 """
 Default Global variables initialized here
 """
-monitoring_interval = 30  # in seconds;
+monitoring_interval = 10  # in seconds;
 
 config_path = os.path.realpath('./../config')
 micro_config_file_name = config_path + "/microservices.ini"
@@ -60,13 +61,21 @@ def compare_cpu_util(micro_config, micro_utilization, macro_config, macro_utiliz
                 # Print the cpu info
                 print_cpu_util(macro, macro_utilization, macro_config)
 
-                # Then check whether the macroservice can handle the load to spin another microservice
-                if check_high_cpu(macro, macro_config, macro_utilization):
-                    execute.scale_macroservice(macro, int(macro_config.get(macro, 'up_step')))
+                result = parse_dockbeat(micro)
 
-                # Finally, scale up the microservice
-                execute.scale_microservice(micro, int(micro_config.get(micro, 'up_step')))
+                if result == False:
+                    # Check if Macro Autoscaling is set to True
+                    if util.str_to_bool(macro_config.get(macro, 'auto_scale')):
+                        # Then check whether the macroservice can handle the load to spin another microservice
+                        if check_high_cpu(macro, macro_config, macro_utilization):
+                            execute.scale_macroservice(macro, int(macro_config.get(macro, 'up_step')))
+                    else:
+                        print("Autoscaling for this macro: "+str(macro)+" is not set. Hence skipping...")
 
+                    # Finally, scale up the microservice
+                    execute.scale_microservice(micro, int(micro_config.get(micro, 'up_step')))
+                else:
+                    print("Anomaly Detected! Skip Autoscaling!!")
             else:
                 # Which means it's low low_cpu
                 print("LOW CPU UTIL!")
@@ -76,14 +85,24 @@ def compare_cpu_util(micro_config, micro_utilization, macro_config, macro_utiliz
                 # Print the cpu info
                 print_cpu_util(macro, macro_utilization, macro_config)
 
-                # Scale down the microservice first, just to be on the safe side
-                execute.scale_microservice(micro, int(micro_config.get(micro, 'down_step')))
+                result = parse_dockbeat(micro)
+                if result == False:
 
-                # Then check whether the macroservice's cpu_util is too low (so we can remove one)
-                if check_low_cpu(macro, macro_config, macro_utilization):
-                    execute.scale_macroservice(macro, int(macro_config.get(macro, 'down_step')))
+                    # Scale down the microservice first, just to be on the safe side
+                    execute.scale_microservice(micro, int(micro_config.get(micro, 'down_step')))
 
-            #print("\n-------------- EVALUATION COMPLETED FOR MICROSERVICE: "+micro+" --------------\n")
+                    # Check if Macro Autoscaling is set to True
+                    if util.str_to_bool(macro_config.get(macro, 'auto_scale')):
+
+                        # Then check whether the macroservice's cpu_util is too low (so we can remove one)
+                        if check_low_cpu(macro, macro_config, macro_utilization):
+                            execute.scale_macroservice(macro, int(macro_config.get(macro, 'down_step')))
+                    else:
+                        print("Autoscaling for this macro: "+str(macro)+" is not set. Hence skipping...")
+                else:
+                    print("Anomaly Detected! Skip Autoscaling!!")
+
+            print("\n-------------- EVALUATION COMPLETED FOR MICROSERVICE: "+micro+" --------------\n")
 
 def main():
 
@@ -93,6 +112,7 @@ def main():
         macro_config = util.read_config_file(macro_config_file_name)
 
         micro_util = monitor.get_microservices_utilization()
+        #micro_util = monitor.get_container_utilization()
         macro_util = monitor.get_macroservices_utilization()
 
         compare_cpu_util(micro_config, micro_util, macro_config, macro_util)
@@ -104,9 +124,9 @@ def main():
 if __name__ == "__main__":
 
     """ This is just for testing purposes locally. If finalized, you can remove these initializations """
-    """
+
     os.environ["PYTHONUFFERED"] = "0"
     os.environ["PKEY_PASSWORD"] = "/home/ubuntu/Elascale_secure/pass_key/pass_key_passphrase.txt"
     os.environ["PKEY_FILE"] = "/home/ubuntu/Elascale_secure/pass_key/pass_key"
-    """
+
     main()
