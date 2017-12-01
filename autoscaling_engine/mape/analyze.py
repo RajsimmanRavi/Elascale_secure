@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import datetime
 import configparser
 import monitor
 import plan
@@ -11,7 +12,7 @@ from parse_dockbeat import *
 """
 Default Global variables initialized here
 """
-monitoring_interval = 10  # in seconds;
+monitoring_interval = 60  # in seconds;
 
 config_path = os.path.realpath('./../config')
 micro_config_file_name = config_path + "/microservices.ini"
@@ -61,8 +62,8 @@ def compare_cpu_util(micro_config, micro_utilization, macro_config, macro_utiliz
                 # Print the cpu info
                 print_cpu_util(macro, macro_utilization, macro_config)
 
-                result = parse_dockbeat(micro)
-
+                #result = parse_dockbeat(micro)
+                result = False
                 if result == False:
                     # Check if Macro Autoscaling is set to True
                     if util.str_to_bool(macro_config.get(macro, 'auto_scale')):
@@ -72,8 +73,12 @@ def compare_cpu_util(micro_config, micro_utilization, macro_config, macro_utiliz
                     else:
                         print("Autoscaling for this macro: "+str(macro)+" is not set. Hence skipping...")
 
+                    #Print time
+                    st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                    print("AUTOSCALING AT THIS TIME: "+st)
                     # Finally, scale up the microservice
                     execute.scale_microservice(micro, int(micro_config.get(micro, 'up_step')))
+
                 else:
                     print("Anomaly Detected! Skip Autoscaling!!")
             else:
@@ -85,8 +90,15 @@ def compare_cpu_util(micro_config, micro_utilization, macro_config, macro_utiliz
                 # Print the cpu info
                 print_cpu_util(macro, macro_utilization, macro_config)
 
-                result = parse_dockbeat(micro)
+                #After finalized anomaly detection mechanism
+                #result = parse_dockbeat(micro)
+                result = False
+
                 if result == False:
+
+                    #Print time
+                    st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                    print("DOWNSCALING AT THIS TIME: "+st)
 
                     # Scale down the microservice first, just to be on the safe side
                     execute.scale_microservice(micro, int(micro_config.get(micro, 'down_step')))

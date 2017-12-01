@@ -17,11 +17,11 @@ def load_data(f_name):
 
     ts = indexed_df['Value']
 
-
+    """
     if "net" in f_name:
         # normalize and add 1 to make it positive
         ts = (ts - ts.mean()) / (ts.std())+1
-
+    """
 
     if "net" in f_name:
         #print("Before Consolidation of Network Interfaces, Length of Raw Data: %d" %len(ts))
@@ -49,11 +49,11 @@ def load_data(f_name):
     #print("After making it divisible by 10, Data Length: %d" %len(y))
     y = y.fillna(y.bfill())
 
-    """
+
     #This is for printing the values for CPU Utilization
     with pd.option_context('display.max_rows', None, 'display.max_columns', 3):
         print(y)
-    """
+
     return y
 
 
@@ -163,7 +163,7 @@ def detect_anomaly(f_name):
 
     y = load_data(f_name)
     #print(y.tail(5))
-
+    """
     errors = ar_model(y)
 
     ## We need to only give the last sample of prediction to check whether it's an anomaly or not
@@ -190,6 +190,6 @@ def detect_anomaly(f_name):
     else:
         #print("It's okay! It's safe to scale")
         return False
-
+    """
 
 

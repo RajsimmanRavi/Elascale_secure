@@ -59,7 +59,6 @@ def run_command(command):
         # First get the shell from the environment variables and private key files
         shell = get_shell()
         cmd_list = command.split(" ")
-
         with shell:
             result = shell.run(cmd_list, store_pid="True", allow_error=True, encoding="utf8")
 

@@ -1,7 +1,7 @@
 import util
 import json
 import re
-
+import os
 """
 RR: This file contains a number of helper functions that helps Elascale execute specific actions to the system (eg. scale service). Hence, I named this file 'plan'!
 Functions written by Hamzeh Khazaei (which is mostly) are noted on the comments by HK
@@ -136,3 +136,14 @@ def get_macro_replicas(base_name):
         if arr[i].__contains__(base_name):
             counter += 1
     return counter
+"""
+FOR Testing Purposes...ignore!
+def main():
+    print("hey")
+    os.environ["PYTHONUFFERED"] = "0"
+    os.environ["PKEY_PASSWORD"] = "/home/ubuntu/Elascale_secure/pass_key/pass_key_passphrase.txt"
+    os.environ["PKEY_FILE"] = "/home/ubuntu/Elascale_secure/pass_key/pass_key"
+    ch = get_macroservice("http_web")
+if __name__=="__main__":
+    main()
+"""

@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 import os
 import csv
-from anomaly_detector import detect_anomaly
+from get_data_ad import detect_anomaly
 import pandas as pd
 import numpy as np
 import util
@@ -98,7 +98,7 @@ def parse_dockbeat(serv_name):
     net_rx_report = detect_anomaly(DATASET_DIR+"network_rx_dataset.csv")
     #report = "CPU REPORT: "+str(cpu_report)+"\nNETWORK REPORT: "+str(net_rx_report)
 
-
+    """
     # Evaluate the signals
     if cpu_report == False and net_rx_report == False:
         print("Looks ok. Did not cross the difference of 0.45 or 1.0 for network")
@@ -109,7 +109,7 @@ def parse_dockbeat(serv_name):
     else:
         print("One of the signlas point anomalies. Just ignore for now")
         return True
-
+    """
 if __name__=="__main__":
 
     #parse_dockbeat("http_web")

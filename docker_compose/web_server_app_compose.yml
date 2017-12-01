@@ -8,7 +8,7 @@ services:
         published: 8080
         protocol: tcp
         mode: host
-    #deploy:
-    #  placement:
-    #    constraints:
-    #      - node.Labels.loc == web
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == iot-swarm-master

@@ -3,9 +3,7 @@ from datetime import datetime
 import os
 import csv
 from anomaly_detector import detect_anomaly
-import pandas as pd
-import numpy as np
-import util
+
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -23,9 +21,8 @@ def write_to_file(f_name, data_list):
 
     # Add data
     for line in data_list:
-        if "0001-01-01T00" not in line:
-            f.write(line)
-            f.write('\n')
+        f.write(line)
+        f.write('\n')
 
     f.close()
 
@@ -48,20 +45,20 @@ def get_all_data(dockbeat_dir, serv_name):
     files = os.listdir(dockbeat_dir)
 
     for f in files:
+        #if f == "dockbeat" or f == "dockbeat.1" or f == "dockbeat.2":
         for line in open(dockbeat_dir+"/"+f, 'r'):
             try:
                 load_data = json.loads(line)
                 if(any(d['value'] == serv_name for d in load_data["containerLabels"])):
                     stats.append(load_data)
             except Exception as e:
-                #print("Found error on line: "+str(e))
-                #print("ignoring...")
+                print("Found error on line: "+str(e))
+                print("ignoring...")
                 continue
 
     for st in stats:
-        if st["type"] == "net":
-            data = st["@timestamp"]+","+str(st["net"]["rxPackets_ps"])
-            network_rx_data.append(data)
+        if st["type"] == "net" and (str(st["net"]["name"]) == "eth1"):
+            network_rx_data.append(st["@timestamp"]+","+str(st["net"]["rxPackets_ps"]))
         elif st["type"] == "cpu" in st:
             cpu_data.append(st["@timestamp"]+","+str(st["cpu"]["totalUsage"]))
 
@@ -82,40 +79,35 @@ def parse_dockbeat(serv_name):
 
     network_rx_data, cpu_data = get_all_data(DOCKBEAT_DIR, serv_name)
     print("Got all Stats!!")
+    print(len(cpu_data))
 
     # sort values
     network_rx_data = sort_data(network_rx_data)
     cpu_data = sort_data(cpu_data)
 
-
     # write to file
     write_to_file(DATASET_DIR+"cpu_dataset.csv", cpu_data)
     write_to_file(DATASET_DIR+"network_rx_dataset.csv", network_rx_data)
 
-    #print("finished writing to files!")
+    print("finished writing to files!")
 
     cpu_report = detect_anomaly(DATASET_DIR+"cpu_dataset.csv")
     net_rx_report = detect_anomaly(DATASET_DIR+"network_rx_dataset.csv")
-    #report = "CPU REPORT: "+str(cpu_report)+"\nNETWORK REPORT: "+str(net_rx_report)
+    report = "CPU REPORT: "+str(cpu_report)+"\nNETWORK REPORT: "+str(net_rx_report)
 
+    print(report)
 
     # Evaluate the signals
     if cpu_report == False and net_rx_report == False:
-        print("Looks ok. Did not cross the difference of 0.45 or 1.0 for network")
+        # Looks ok. Did not cross the difference of 0.45
         return False
     elif cpu_report != False and net_rx_report != False:
-        print("Clearly somehting is off! Both signals point anomalies. Don't Autoscale!")
+        # Clearly somehting is off! Both signals point anomalies
         return True
     else:
-        print("One of the signlas point anomalies. Just ignore for now")
-        return True
+        # One of the signlas point anomalies. Just ignore
+        return False
 
 if __name__=="__main__":
-
-    #parse_dockbeat("http_web")
-
-    while(1):
-        parse_dockbeat("http_web")
-
-        util.progress_bar(60)
+    parse_dockbeat("http_web")
 

@@ -96,6 +96,7 @@ def get_microservices_utilization():
         utilization[service['key']] = {'cpu': service['1']['value'], 'memory': service['3']['value'],
                                        'net_rx': service['4']['value'], 'net_tx': service['5']['value'],
                                        'blockIO': service['6']['value']}
+
     return utilization
 
 
@@ -170,7 +171,6 @@ def get_macroservices_utilization():
                 cnt += 1
                 utilization[base_host]['cpu'] += host['cpu']
                 utilization[base_host]['memory'] += host['memory']
-
         utilization[base_host]['cpu'] = utilization[base_host]['cpu'] / float(cnt)
         utilization[base_host]['memory'] = utilization[base_host]['memory'] / float(cnt)
         utilization[base_host]['host_cnt'] = cnt
@@ -440,3 +440,4 @@ def get_cont_mem_util(container_name):
     })
     print("%s" % res)
     return res['aggregations']['avg-mem-util']['value']
+
