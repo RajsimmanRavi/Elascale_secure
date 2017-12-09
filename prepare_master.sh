@@ -46,6 +46,13 @@ then
     #Check version
     echo "----- DOCKER VERSION -----"
     sudo docker version
+
+    #Need to set logging file configuration. 
+    sudo cp daemon.json /etc/docker/
+
+    #Need to restart docker
+    sudo systemctl restart docker 
+
 else
     echo "Docker is already installed on this host!"
     sudo docker version

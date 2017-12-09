@@ -104,7 +104,7 @@ def clean_data(train):
 
     #print("Mean Values for a pattern: %s" % str(mean_results))
 
-    # Check if each element's difference from the mean > 10%
+    # Check if each element's difference from the mean > 15%
     # If it is, then replace the value as mean
     for col in range(num_cols):
         for row in range(num_rows):

@@ -62,8 +62,11 @@ def compare_cpu_util(micro_config, micro_utilization, macro_config, macro_utiliz
                 # Print the cpu info
                 print_cpu_util(macro, macro_utilization, macro_config)
 
-                #result = parse_dockbeat(micro)
-                result = False
+                start = datetime.now()
+                result = parse_dockbeat(micro)
+                stop = datetime.now()
+                print("It took %s seconds to process dockbeat data!" %(str((stop-start).seconds)))
+                #result = False
                 if result == False:
                     # Check if Macro Autoscaling is set to True
                     if util.str_to_bool(macro_config.get(macro, 'auto_scale')):
