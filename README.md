@@ -1,11 +1,12 @@
 # Elascale_secure
-Elascale with a little bit of security. This repo contains all the scripts required for Elascale deployment including a sample IoT application
+Elascale is an autoscaling solution for both microservices and VMs on cloud environments. Elascale utilizes Docker Swarm and Docker-machine for managing microservices and VMs respectively. Note that microservices need to be deployed by Docker services (not just containers) in order for functioning properly. For more information, please refer to the following link: https://docs.docker.com/engine/swarm/how-swarm-mode-works/services/#services-tasks-and-containers
 
 All you need is a **m1.medium** flavored VM (based on OpenStack) with **Ubuntu 16-04** image. It may require Ubuntu 14-04 for other nodes (for later deployment).
 
-![alt text](https://github.com/RajsimmanRavi/Elascale_secure/blob/master/Elascale_secure.png)
+![alt text](https://github.com/RajsimmanRavi/Elascale_secure/blob/master/elascale_arch.png)
 
 ## Changes from the previous Elascale version ##
+There has been major improvements since the original prototype (https://github.com/RajsimmanRavi/Elascale_scripts). The following highlights are:
 
     * Incorporated NGINX for access control and encryption
     * HTTPS-based encrypted channels to prevent eavesdropping/information leakage
@@ -69,7 +70,11 @@ This script does the following:
   * It stores the keypairs and passphrase at /home/ubuntu/Elascale_secure/pass_key 
   * It also adds the public key to /home/ubuntu/.ssh/authorized_keys 
 
-## IoT Application Deployment
+## Example IoT Application Deployment
+
+This is an example IoT Application developed for a scientific research paper. You can use this application to learn how Elascale works on this environment. The architecture of the application is shown below: 
+
+![alt text](https://github.com/RajsimmanRavi/Elascale_secure/blob/master/Elascale_secure.png)
 
 Deploy the IoT application using the following command: ```sudo /home/ubuntu/Elascale_secure/./deploy_iot_app.sh```
 
@@ -93,6 +98,9 @@ select * from stats.data;
 ```
 
 ## Elascale Deployment
+
+After deploying your (or above) application, you can deploy the Elascale platform.
+
 Deploy the Elascale using the following command: ```sudo /home/ubuntu/Elascale_secure/./deploy_elascale.sh```
 
 Note: It requires the SAVI username and password for VM deployment on the infrastructure
@@ -111,7 +119,7 @@ Once everything is up, you can view the Elascale UI shown on the script output. 
 
 ## Clean up Procedure
 
-You can remove the IoT application and it's related components (eg. worker nodes) using the following script:
+You can remove the example IoT application and it's related components (eg. worker nodes) using the following script:
 
 ```sudo /home/ubuntu/Elascale_secure/./clean_iot_app.sh```
 
