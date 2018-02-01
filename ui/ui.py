@@ -45,11 +45,15 @@ class ConfigHandler(tornado.websocket.WebSocketHandler):
     Then, it reads the ini files to get their current config parameter values.
     It sends them both to index.html to render that content.
 """
-
 class MainHandler(BaseHandler):
     def get(self):
 
         if not self.current_user:
+            req = self.request
+            if req.headers.get('X-Forwarded-Proto') != 'https':
+                self.handler_class = tornado.web.RedirectHandler
+                self.handler_kwargs = {'url': 'https://%s%s' % (req.headers['Host'], req.uri)}
+
             self.redirect("/login")
             return
 
@@ -99,15 +103,15 @@ class Application(tornado.web.Application):
         """
         initializer for application object
         """
-    	handlers = [
-	        (r"/", MainHandler),
-	        (r"/config", ConfigHandler),
-	        (r"/login", LoginHandler),
+        handlers = [
+            (r"/", MainHandler),
+            (r"/config", ConfigHandler),
+            (r"/login", LoginHandler),
 	    ]
 
         settings = {
 	        "debug": True,
-                "static_path": os.path.join(os.path.dirname(__file__), "static"),
+            "static_path": os.path.join(os.path.dirname(__file__), "static"),
             "cookie_secret": str(uuid.uuid4()),
             "xsrf_cookies": True,
             "login_url": "/login",
@@ -119,10 +123,9 @@ class Application(tornado.web.Application):
 
 def main():
 
-    """
-    os.environ['HOST_IP']       = "10.11.1.6"
-    os.environ['HOST_PORT']     = "8888"
-    os.environ['ELASTIC_IP']    = "10.11.1.10"
+    os.environ['HOST_IP']       = "10.12.0.10"
+    os.environ['HOST_PORT']     = "8889"
+    os.environ['ELASTIC_IP']    = "10.12.0.23"
     os.environ['MICRO']         = "/home/ubuntu/Elascale_secure/config/microservices.ini"
     os.environ['MACRO']         = "/home/ubuntu/Elascale_secure/config/macroservices.ini"
     os.environ['SELF_CERT']     = "/home/ubuntu/Elascale_secure/certs/elascale_ui_certificate.pem"
@@ -130,7 +133,6 @@ def main():
     os.environ['NGINX_CERT']    = "/home/ubuntu/Elascale_secure/certs/elasticsearch_certificate.pem"
     os.environ['USERNAME']      = "xx"
     os.environ['PASSWORD']      = "xx"
-    """
 
     http_server = tornado.httpserver.HTTPServer(Application(), ssl_options={
         "certfile": os.environ['SELF_CERT'],
