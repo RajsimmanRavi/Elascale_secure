@@ -59,7 +59,7 @@ then
       --openstack-net-name "$network_name" \
       --openstack-sec-groups "savi-iot" --openstack-ssh-user "ubuntu" \
       --openstack-username $USERNAME --openstack-password $PASSWORD \
-      $VM_NAME
+      $VM_NAME || { echo "command failed"; sudo docker-machine rm -f $VM_NAME; exit 1; }
 else 
     "VM $VM_NAME deployed already"
 fi 
