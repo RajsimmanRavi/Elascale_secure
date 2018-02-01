@@ -52,10 +52,10 @@ services:
     #ports:
     #  - "9092:9092"
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: 10.2.1.16
+      KAFKA_ADVERTISED_HOST_NAME: 10.12.0.20
       KAFKA_ADVERTISED_PORT: 9092
       KAFKA_CREATE_TOPICS: "stats:1:1"
-      KAFKA_ZOOKEEPER_CONNECT: 10.2.1.16:2181
+      KAFKA_ZOOKEEPER_CONNECT: 10.12.0.20:2181
   sensor:
     image: perplexedgamer/sensor:v3
     deploy:
@@ -63,7 +63,7 @@ services:
         constraints:
           - node.labels.loc == agg-sensor
     environment:
-      KAFKA_IP: 10.2.1.16
+      KAFKA_IP: 10.12.0.20
       KAFKA_PORT: 9092
   edge:
     image: perplexedgamer/edge_processor:v6
@@ -75,5 +75,5 @@ services:
         condition: on-failure
         window: 120s
     environment:
-      KAFKA_IP: 10.2.1.16
-      CASS_IP: 10.2.1.12
+      KAFKA_IP: 10.12.0.20
+      CASS_IP: 10.12.0.12

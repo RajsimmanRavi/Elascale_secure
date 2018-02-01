@@ -16,6 +16,10 @@ PASSWORD="$3"
 LABEL_KEY="$4"
 LABEL_VALUE="$5"
 
+DEFAULT_REGION="EDGE-TR-1"
+DEFAULT_TENANT="demo1"
+DEFAULT_AUTH_URL="http://iam.savitestbed.ca:5000/v2.0"
+
 JOIN_COMMAND="sudo "`sudo docker swarm join-token worker | grep -v 'add' | tr -d '\' 2> /dev/null`
 SCRIPTS_DIR="/home/ubuntu/Elascale_secure"
 
@@ -32,11 +36,27 @@ VM_FLAVOR="m1.medium"
 
 if [[ -z $check_vm ]]
 then
+
+    read -p "Tenant ($DEFAULT_TENANT): " tenant
+    tenant=${tenant:-$DEFAULT_TENANT}
+    echo $tenant
+    
+    read -p "Region ($DEFAULT_REGION): " region
+    region=${region:-$DEFAULT_REGION}
+    echo $region
+    
+    read -p "Auth URL ($DEFAULT_AUTH_URL): " auth_url
+    auth_url=${auth_url:-$DEFAULT_AUTH_URL}
+    echo $auth_url
+
+    network_name="`echo "$tenant" | tr '[:upper:]' '[:lower:]'`-net"
+
     sudo docker-machine create --driver openstack \
-      --openstack-auth-url "http://iamv3.savitestbed.ca:5000/v2.0" \
+      --openstack-auth-url "$auth_url" \
       --openstack-insecure \
       --openstack-flavor-name $VM_FLAVOR --openstack-image-name "Ubuntu-14-04" \
-      --openstack-tenant-name "demo2" --openstack-region "CORE-2" \
+      --openstack-tenant-name "$tenant" --openstack-region "$region" \
+      --openstack-net-name "$network_name" \
       --openstack-sec-groups "savi-iot" --openstack-ssh-user "ubuntu" \
       --openstack-username $USERNAME --openstack-password $PASSWORD \
       $VM_NAME
