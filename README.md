@@ -17,7 +17,7 @@ There has been major improvements since the original prototype (https://github.c
 
 ### Deployment in an OpenStack Infrastructure ###
 
-You can deploy Elascale on any OpenStack based infrastructure. You just need to edit the following snippet (located on provision_vm.sh) to your platform. **You don't need to edit anything if it's going to be deployed on SAVI platform.**
+You can deploy Elascale on any OpenStack based infrastructure. You just need to edit the following snippet (located on provision_vm.sh) to your platform. If you have any problems creating VMs, this snippet could be the issue. Make sure the arguments to this command (such as auth-url, sec-groups etc.) work on your platform. 
 
 ```
 sudo docker-machine create --driver openstack \
@@ -31,11 +31,11 @@ sudo docker-machine create --driver openstack \
 ```
 In fact, you can deploy on other non-OpenStack based platforms as well, as long it has the docker-machine drivers. 
 
-**Note:** We have not tested on any other platform, aside from SAVI infrastructure (which is based on OpenStack)
+**Note:** We have not tested on any other platform, aside from SAVI infrastructure (which is based on OpenStack). Just make sure your **vm-name** is prefixed with **iot-** as the autoscaling engine only recognizes those VMs.
 
 ### Ports Required ###
 
-The following ports need to be opened in the security-group for Elascale to be working properly. **The security group has been created on SAVI platform already.**
+The following ports need to be opened in the security-group for Elascale to be working properly. **In SAVI platform, make sure the secgroup (savi-iot) is created for that appropriate tenant/region.**
 
 | IP Protocol   | From Port  | To Port  |  Description     |
 | ------------- |:----------:|:--------:| ----------------:|
