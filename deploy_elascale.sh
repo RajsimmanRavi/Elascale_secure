@@ -14,7 +14,7 @@ LABEL_KEY="role" # We want to label the node role=monitor
 LABEL_VALUE="monitor" # same as above
 
 #check if the monitor VM is already deployed
-check_monitor=`sudo docker-machine ls | grep monitor`
+check_monitor=`$SCRIPTS_DIR/./get_node_role_ip.sh monitor`
 
 if [[ -z $check_monitor ]]
 then
