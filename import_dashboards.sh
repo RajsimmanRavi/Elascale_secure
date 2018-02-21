@@ -2,7 +2,8 @@
 
 SCRIPTS_DIR="/home/ubuntu/Elascale_secure"
 CONFIG_DIR="$SCRIPTS_DIR/config"
-ELASTIC_IP=`$SCRIPTS_DIR/./get_node_role_ip.sh monitor`
+ELASTIC_NODE=`$SCRIPTS_DIR/./get_node_role.sh monitor`
+ELASTIC_IP="$(cut -d':' -f2 <<<"$ELASTIC_NODE")"
 ELASTIC_PORT="9200"
 
 #Want to check how long it has been waiting for the port to be open

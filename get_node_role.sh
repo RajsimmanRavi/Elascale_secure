@@ -41,7 +41,8 @@ do
         # Regex that IP address boi!
         # Get the one unique IP Address
         IP=`sudo docker node inspect $hostname | sed 's/"//g' | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b" | uniq`
-        echo "$IP"
+        #echo "$IP"
+        echo "$hostname:$IP"
     fi
 done
 

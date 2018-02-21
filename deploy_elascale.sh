@@ -4,19 +4,20 @@ SCRIPTS_DIR="/home/ubuntu/Elascale_secure"
 CONFIG_DIR="$SCRIPTS_DIR/config"
 COMPOSE_DIR="$SCRIPTS_DIR/docker_compose"
 HOSTNAME=`hostname`
-MASTER_IP=`$SCRIPTS_DIR/./get_node_role_ip.sh master`
+MASTER_NODE=`$SCRIPTS_DIR/./get_node_role.sh master` # Gives hostname:IP format
+MASTER_IP="$(cut -d':' -f2 <<<"$MASTER_NODE")"
 KIBANA_USERNAME="elascale"
 KIBANA_PASSWORD="savi_elascale"
 
 #Command-line arguments for provisioning VM
-VM_NAME="iot-monitor"
+DEFAULT_MON_VM_NAME="iot-monitor"
 LABEL_KEY="role" # We want to label the node role=monitor
 LABEL_VALUE="monitor" # same as above
 
 #check if the monitor VM is already deployed
-check_monitor=`$SCRIPTS_DIR/./get_node_role_ip.sh monitor`
+CHECK_MONITOR=`$SCRIPTS_DIR/./get_node_role.sh monitor`
 
-if [[ -z $check_monitor ]]
+if [[ -z $CHECK_MONITOR ]]
 then
 
     # Read Username for provisioning the VM
@@ -30,15 +31,15 @@ then
     # Empty line for better printing 
     echo
 
-    $SCRIPTS_DIR/./provision_vm.sh $VM_NAME $USERNAME $PASSWORD $LABEL_KEY $LABEL_VALUE
+    $SCRIPTS_DIR/./provision_vm.sh $DEFAULT_MON_VM_NAME $USERNAME $PASSWORD $LABEL_KEY $LABEL_VALUE
 else 
-   echo "monitor VM already deployed. Skipping step."
-
+   VM_NAME="$(cut -d':' -f1 <<<"$CHECK_MONITOR")"
+   echo "monitor VM already deployed: $VM_NAME. Skipping creation step."
 fi 
 
 #Get the IP address of the provisioned VM (has the label 'monitor')
-ELASTIC_IP=`$SCRIPTS_DIR/./get_node_role_ip.sh monitor`
-
+ELASTIC_NODE=`$SCRIPTS_DIR/./get_node_role.sh monitor`
+ELASTIC_IP="$(cut -d':' -f2 <<<"$ELASTIC_NODE")"
 echo "ELASTIC_IP: $ELASTIC_IP"
 
 # Now that we have the ELASTIC_IP and MASTER_IP, we can create the certificates
