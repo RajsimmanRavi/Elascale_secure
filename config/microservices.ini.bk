@@ -1,0 +1,190 @@
+[iot_app_cass]
+cpu_up_lim = 1.0
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 2
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[iot_app_sensor]
+cpu_up_lim = 0.5
+mem_up_lim = 0.7
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 1000
+min_replica = 1
+auto_scale = False
+
+[iot_app_edge]
+cpu_up_lim = 0.5
+mem_up_lim = 0.8
+cpu_down_lim = 0.2
+up_step = 1
+down_step = -1
+max_replica = 10
+min_replica = 1
+auto_scale = True
+
+[iot_app_kafka]
+cpu_up_lim = 0.6
+mem_up_lim = 0.8
+cpu_down_lim = 0.2
+up_step = 1
+down_step = -1
+max_replica = 100
+min_replica = 1
+auto_scale = True
+
+[iot_app_zookeeper]
+cpu_up_lim = 0.6
+mem_up_lim = 0.8
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 50
+min_replica = 1
+auto_scale = True
+
+[EK_monitor_elasticsearch]
+cpu_up_lim = 0.7
+mem_up_lim = 0.7
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[beat_metricbeat]
+cpu_up_lim = 0.4
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[beat_dockbeat]
+cpu_up_lim = 0.6
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[ek_nginx]
+cpu_up_lim = 0.6
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[ek_kibana]
+cpu_up_lim = 0.6
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[ek_elasticsearch]
+cpu_up_lim = 0.6
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[ui_ui]
+cpu_up_lim = 0.6
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[EK_monitor_kibana]
+cpu_up_lim = 0.8
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[EK_monitor_nginx]
+cpu_up_lim = 0.6
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[beats_metricbeat]
+cpu_up_lim = 0.6
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[beats_dockbeat]
+cpu_up_lim = 0.6
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[elascale_ui]
+cpu_up_lim = 0.6
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[elascale_v2]
+cpu_up_lim = 0.6
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+
+[elascale_secure]
+cpu_up_lim = 0.6
+mem_up_lim = 0.6
+cpu_down_lim = 0.4
+up_step = 1
+down_step = -1
+max_replica = 4
+min_replica = 1
+auto_scale = False
+

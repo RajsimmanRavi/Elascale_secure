@@ -61,7 +61,6 @@ def run_command(command):
         cmd_list = command.split(" ")
         with shell:
             result = shell.run(cmd_list, store_pid="True", allow_error=True, encoding="utf8")
-
     except Exception as e:
         print(str(e))
         exit(1)

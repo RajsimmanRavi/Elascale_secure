@@ -15,7 +15,7 @@ services:
     environment:
       - system.hostfs=/hostfs
     extra_hosts:
-      - "elasticsearch:10.12.0.23"
+      - "elasticsearch:10.2.1.19"
   dockbeat:
     image: ingensi/dockbeat
     deploy:
@@ -27,6 +27,6 @@ services:
       - /volumes/dockbeat-logs/:/var/logs/dockbeat
       - /tmp/dockbeat/:/tmp/dockbeat
     extra_hosts:
-      - "elasticsearch:10.12.0.23"
+      - "elasticsearch:10.2.1.19"
 networks:
   host:

@@ -1,7 +1,7 @@
 import os
 import sys
 import time
-from datetime import datetime
+import datetime
 import configparser
 import monitor
 import plan
@@ -63,20 +63,28 @@ def compare_cpu_util(micro_config, micro_utilization, macro_config, macro_utiliz
                 # Print the cpu info
                 print_cpu_util(macro, macro_utilization, macro_config)
 
-                # Check if Macro Autoscaling is set to True
-                if util.str_to_bool(macro_config.get(macro, 'auto_scale')):
-                    # Then check whether the macroservice can handle the load to spin another microservice
-                    if check_high_cpu(macro, macro_config, macro_utilization):
-                        execute.scale_macroservice(macro, int(macro_config.get(macro, 'up_step')))
+                start = datetime.now()
+                result = parse_dockbeat(micro)
+                stop = datetime.now()
+                print("It took %s seconds to process dockbeat data!" %(str((stop-start).seconds)))
+                #result = False
+                if result == False:
+                    # Check if Macro Autoscaling is set to True
+                    if util.str_to_bool(macro_config.get(macro, 'auto_scale')):
+                        # Then check whether the macroservice can handle the load to spin another microservice
+                        if check_high_cpu(macro, macro_config, macro_utilization):
+                            execute.scale_macroservice(macro, int(macro_config.get(macro, 'up_step')))
+                    else:
+                        print("Autoscaling for this macro: "+str(macro)+" is not set. Hence skipping...")
+
+                    #Print time
+                    st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                    print("AUTOSCALING AT THIS TIME: "+st)
+                    # Finally, scale up the microservice
+                    execute.scale_microservice(micro, int(micro_config.get(micro, 'up_step')))
+
                 else:
-                    print("Autoscaling for this macro: "+str(macro)+" is not set. Hence skipping...")
-
-                #Print time
-                st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-                print("AUTOSCALING AT THIS TIME: "+st)
-                # Finally, scale up the microservice
-                execute.scale_microservice(micro, int(micro_config.get(micro, 'up_step')))
-
+                    print("Anomaly Detected! Skip Autoscaling!!")
             else:
                 # Which means it's low low_cpu
                 print("LOW CPU UTIL!")
@@ -86,33 +94,37 @@ def compare_cpu_util(micro_config, micro_utilization, macro_config, macro_utiliz
                 # Print the cpu info
                 print_cpu_util(macro, macro_utilization, macro_config)
 
-                #Print time
-                st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
-                print("DOWNSCALING AT THIS TIME: "+st)
+                #After finalized anomaly detection mechanism
+                #result = parse_dockbeat(micro)
+                result = False
 
-                # Scale down the microservice first, just to be on the safe side
-                execute.scale_microservice(micro, int(micro_config.get(micro, 'down_step')))
+                if result == False:
 
-                # Check if Macro Autoscaling is set to True
-                if util.str_to_bool(macro_config.get(macro, 'auto_scale')):
+                    #Print time
+                    st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                    print("DOWNSCALING AT THIS TIME: "+st)
 
-                    # Then check whether the macroservice's cpu_util is too low (so we can remove one)
-                    if check_low_cpu(macro, macro_config, macro_utilization):
-                        execute.scale_macroservice(macro, int(macro_config.get(macro, 'down_step')))
+                    # Scale down the microservice first, just to be on the safe side
+                    execute.scale_microservice(micro, int(micro_config.get(micro, 'down_step')))
+
+                    # Check if Macro Autoscaling is set to True
+                    if util.str_to_bool(macro_config.get(macro, 'auto_scale')):
+
+                        # Then check whether the macroservice's cpu_util is too low (so we can remove one)
+                        if check_low_cpu(macro, macro_config, macro_utilization):
+                            execute.scale_macroservice(macro, int(macro_config.get(macro, 'down_step')))
+                    else:
+                        print("Autoscaling for this macro: "+str(macro)+" is not set. Hence skipping...")
                 else:
-                    print("Autoscaling for this macro: "+str(macro)+" is not set. Hence skipping...")
+                    print("Anomaly Detected! Skip Autoscaling!!")
 
             print("\n-------------- EVALUATION COMPLETED FOR MICROSERVICE: "+micro+" --------------\n")
 
 def main():
 
-
-    ignore_micro_list = os.environ['IGNORE_MICRO_LIST'].split(",")
-    ignore_macro_list = os.environ['IGNORE_MACRO_LIST'].split()
-
     while True:
         # Update the config files first!
-        change_config(micro_config_file_name,macro_config_file_name, ignore_micro_list, ignore_macro_list)
+        change_config(micro_config_file_name,macro_config_file_name)
 
         micro_config = util.read_config_file(micro_config_file_name)
         macro_config = util.read_config_file(macro_config_file_name)
@@ -127,13 +139,11 @@ def main():
         util.progress_bar(monitoring_interval)
 
 if __name__ == "__main__":
-    """
-    #This is just for testing purposes locally. If finalized, you can remove these initializations
+
+    """ This is just for testing purposes locally. If finalized, you can remove these initializations """
 
     os.environ["PYTHONUFFERED"] = "0"
     os.environ["PKEY_PASSWORD"] = "/home/ubuntu/Elascale_secure/pass_key/pass_key_passphrase.txt"
     os.environ["PKEY_FILE"] = "/home/ubuntu/Elascale_secure/pass_key/pass_key"
-    os.environ["IGNORE_MICRO_LIST"] = "EK_monitor,beats,elascale_ui"
-    os.environ["IGNORE_MACRO_LIST"] = "iot-rajsimman-h4"
-    """
+
     main()
