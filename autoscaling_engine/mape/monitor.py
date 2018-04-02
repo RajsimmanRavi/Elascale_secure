@@ -1,20 +1,8 @@
-# Monitoring component of the MAPE-K loop
-import os
-import configparser
-from elasticsearch import Elasticsearch
+import engine_config
 
-config = configparser.ConfigParser()
-config_name = os.path.realpath('./../config') + "/config.ini"
-config.read(config_name)
+# Monitoring component of the MAPE-K loop (written by ByungChul Park, modified later by Rajsimman Ravi)
 
-ca_cert = str(config.get('elasticsearch', 'ca_cert'))
-print(ca_cert)
-es = Elasticsearch([{'host': 'elasticsearch', 'port': int(config.get('elasticsearch', 'port'))}], use_ssl=True, ca_certs=ca_cert)
-
-start_time = "now-30s"  # we look into last 30 seconds of metric data; the value is an average during 30 seconds
-
-
-def get_microservices_utilization():
+def get_microservices_utilization(es):
     res = es.search(index='dockbeat-*', body={
         "query": {
             "bool": {
@@ -34,7 +22,7 @@ def get_microservices_utilization():
                     {
                         "range": {
                             "@timestamp": {
-                                "gte": start_time,
+                                "gte": engine_config.START_TIME,
                                 "lte": "now",
                                 "format": "epoch_millis"
                             }
@@ -100,7 +88,7 @@ def get_microservices_utilization():
     return utilization
 
 
-def get_macroservices_utilization():
+def get_macroservices_utilization(es):
     res = es.search(index="metricbeat-*", body={
         "query": {
             "bool": {
@@ -120,7 +108,7 @@ def get_macroservices_utilization():
                     {
                         "range": {
                             "@timestamp": {
-                                "gte": start_time,
+                                "gte": engine_config.START_TIME,
                                 "lte": "now",
                                 "format": "epoch_millis"
                             }
@@ -177,71 +165,6 @@ def get_macroservices_utilization():
 
     return utilization
 
-
-def get_container_utilization():
-    res = es.search(index='dockbeat-*', body={
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "query_string": {
-                            "analyze_wildcard": True,
-                            "query": "*"
-                        }
-                    },
-                    {
-                        "query_string": {
-                            "query": "*",
-                            "analyze_wildcard": True
-                        }
-                    },
-                    {
-                        "range": {
-                            "@timestamp": {
-                                "gte": start_time,
-                                "lte": "now",
-                                "format": "epoch_millis"
-                            }
-                        }
-                    }
-                ],
-                "must_not": []
-            }
-        },
-        "size": 0,
-        "_source": {
-            "excludes": []
-        },
-        "aggs": {
-            "3": {
-                "terms": {
-                    "field": "beat.hostname.keyword",
-                    "size": 5,
-                    "order": {
-                        "1": "desc"
-                    }
-                },
-                "aggs": {
-                    "1": {
-                        "avg": {
-                            "field": "memory.usage_p"
-                        }
-                    },
-                    "2": {
-                        "avg": {
-                            "field": "cpu.totalUsage"
-                        }
-                    }
-                }
-            }
-        }
-    })
-    utilization = {}
-    for host in res['aggregations']['3']['buckets']:
-        utilization[host['key']] = {'cpu': host['1']['value'], 'memory': host['2']['value']}
-    return utilization
-
-
 def get_hosts_info(res):
     """
     This function returns the hostname, cup utilization and memory utilization for all active hosts.
@@ -268,176 +191,3 @@ def get_base_host_names(hosts_info):
         if not str(host['name']).__contains__('.'):
             base_host_names.append(host['name'])
     return base_host_names
-
-
-# returns the cpu utilization percentage
-def get_vm_cpu_util(host_name):
-    res = es.search(index="metricbeat-*", body={
-        "size": 1,
-        "aggs": {
-            "avg-cpu-idle": {
-                "avg": {
-                    "field": "system.cpu.idle.pct"
-                }
-            },
-        },
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "query_string": {
-                            "query": "metricset.name: cpu AND beat.name: like " + host_name,
-                            "analyze_wildcard": True
-                        }
-                    },
-                    {
-                        "range": {
-                            "@timestamp": {
-                                "gte": start_time,
-                                "lte": "now",
-                                "format": "epoch_millis"
-                            }
-                        }
-                    }
-                ],
-                "must_not": []
-            }
-        },
-        "_source": {
-            "excludes": []
-        },
-        "version": True
-    })
-    for doc in res['hits']['hits']:
-        print("%s" % doc['_source'])
-        break
-    return 1 - (res['aggregations']['avg-cpu-idle']['value'])  # to have the cpu usage = 1 - idle
-
-
-# using metricbeat index we return the percentage  of memory usage.
-def get_vm_mem_util(host_name):
-    res = es.search(index="metricbeat-*", body={
-        "size": 1,
-        "aggs": {
-            "avg-mem-util": {
-                "avg": {
-                    "field": "system.memory.actual.used.pct"
-                }
-            },
-        },
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "query_string": {
-                            "query": "metricset.name: memory AND beat.name: " + host_name,
-                            "analyze_wildcard": True
-                        }
-                    },
-                    {
-                        "range": {
-                            "@timestamp": {
-                                "gte": start_time,
-                                "lte": "now",
-                                "format": "epoch_millis"
-                            }
-                        }
-                    }
-                ],
-                "must_not": []
-            }
-        },
-        "_source": {
-            "excludes": []
-        },
-        "version": True
-    })
-    for doc in res['hits']['hits']:
-        print("%s" % doc['_source'])
-        break
-    return res['aggregations']['avg-mem-util']['value']
-
-
-# using dockbeat index we get total cpu usage by the container in last minute
-def get_cont_cpu_util(container_name):
-    res = es.search(index="dockbeat*", body={
-        "size": 1,
-        "aggs": {
-            "avg-cpu-util": {
-                "avg": {
-                    "field": "cpu.totalUsage"
-                }
-            },
-        },
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "query_string": {
-                            "query": "container.names: like " + container_name,
-                            "analyze_wildcard": True
-                        }
-                    },
-                    {
-                        "range": {
-                            "@timestamp": {
-                                "gte": start_time,
-                                "lte": "now",
-                                "format": "epoch_millis"
-                            }
-                        }
-                    }
-                ],
-                "must_not": []
-            }
-        },
-        "_source": {
-            "excludes": []
-        },
-        "version": True
-    })
-    print("%s" % res)
-    return res['aggregations']['avg-cpu-util']['value']
-
-
-# using dockbeat index we get memory usage by the container in last minute
-def get_cont_mem_util(container_name):
-    res = es.search(index="dockbeat*", body={
-        "size": 1,
-        "aggs": {
-            "avg-mem-util": {
-                "avg": {
-                    "field": "memory.usage"
-                }
-            },
-        },
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "query_string": {
-                            "query": "container.names: like " + container_name,
-                            "analyze_wildcard": True
-                        }
-                    },
-                    {
-                        "range": {
-                            "@timestamp": {
-                                "gte": start_time,
-                                "lte": "now",
-                                "format": "epoch_millis"
-                            }
-                        }
-                    }
-                ],
-                "must_not": []
-            }
-        },
-        "_source": {
-            "excludes": []
-        },
-        "version": True
-    })
-    print("%s" % res)
-    return res['aggregations']['avg-mem-util']['value']
-

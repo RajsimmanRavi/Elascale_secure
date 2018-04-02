@@ -3,18 +3,13 @@ import util
 import time
 import os
 import configparser
-
 import plan
-
-config_path = os.path.realpath('./../config')
-config_name = config_path + "/config.ini"
-micro_config_name = config_path + "/microservices.ini"
-macro_config_name = config_path + "/macroservices.ini"
+import engine_config
 
 def prepare_for_beats(vm_name):
 
     # Read the current config file
-    config = util.read_config_file(config_name)
+    config = util.read_config_file(engine_config.CONFIG_NAME)
 
     print('\nDeploying beats on the VM: ' + vm_name)
 
@@ -113,11 +108,8 @@ def docker_machine_scale(vm_name, scale_type):
 def remove_swarm_node(node_name):
 
     print("\nRemoving the swarm node: " + node_name+"\n")
-
     result = util.run_command("sudo docker-machine ssh "+node_name+ "sudo docker swarm leave")
-
-    print(node_name + " " + result.output)
-
+    print(node_name + " " + result)
     result = util.run_command("sudo docker node rm --force "+node_name)
 
     return
@@ -127,7 +119,6 @@ def remove_swarm_node(node_name):
 def delete_vm(vm_name):
 
     print('\nDeprovisioning the instance: ' + vm_name+"\n")
-
     result = util.run_command("sudo docker-machine rm --force "+vm_name)
 
     return
@@ -136,7 +127,7 @@ def delete_vm(vm_name):
 def create_vm(new_vm_name, user_name, password, label, value):
 
     # Read the config file and get the Elascale directory
-    config = util.read_config_file(config_name)
+    config = util.read_config_file(engine_config.CONFIG_NAME)
 
     elascale_dir = config.get('swarm', 'elascale_root_dir')
 
@@ -144,13 +135,13 @@ def create_vm(new_vm_name, user_name, password, label, value):
     prov_vm_file = elascale_dir+"./provision_vm.sh"
 
     command = "sudo "+prov_vm_file+" "+new_vm_name+" "+user_name+" "+password+" "+label+" "+value
-    result = util.provision_vm(command)
+    result = util.run_command(command)
 
 
 def scale_microservice(service_name, value):
 
     # Read the current config file
-    micro_config = util.read_config_file(micro_config_name)
+    micro_config = util.read_config_file(engine_config.MICRO_CONFIG)
 
     print("### Scaling micro_service: "+service_name+" of value: "+str(value))
 
@@ -178,7 +169,7 @@ def scale_microservice(service_name, value):
 def scale_macroservice(host_name, value):
 
     # Read the current config file
-    macro_config = util.read_config_file(macro_config_name)
+    macro_config = util.read_config_file(engine_config.MACRO_CONFIG)
 
     print("### Scaling macro_service: "+host_name+" of value: "+str(value))
 
@@ -203,9 +194,9 @@ def scale_macroservice(host_name, value):
 
     else:
         if value > 0:
-            print("====> Scaling out the macroservice: "+host_name+" by 1\n")
+            print("====> Scaling out the macroservice: "+host_name+" by "+str(value)+"\n")
             docker_machine_scale(host_name, 'scale-out')  # scale-out
         else:
             #value < 0
-            print("====> Scaling in the macroservice: "+host_name+" by -1\n")
+            print("====> Scaling in the macroservice: "+host_name+" by -"+str(value)+"\n")
             docker_machine_scale(host_name, 'scale-in')  # scale-in

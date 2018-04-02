@@ -48,7 +48,7 @@ then
     sudo docker version
 
     #Need to set logging file configuration. 
-    sudo cp daemon.json /etc/docker/
+    sudo cp $SCRIPTS_DIR/daemon.json /etc/docker/
 
     #Need to restart docker
     sudo systemctl restart docker 

@@ -13,21 +13,21 @@ Functions written by me (which is one, as of now) are noted on the comments by R
 # Returns: the output of the command: sudo docker service inspect $service_name
 def inspect_service(service_name):
     result = util.run_command("sudo docker service inspect "+service_name)
-    return str(result.output)
+    return result
 
 # HK: Function that inspects the macroservice
 # Param: vm name
 # Returns: the output of the command: sudo docker-machine inspect $vm_name
 def inspect_machine(vm_name):
     result = util.run_command("sudo docker-machine inspect "+vm_name)
-    return str(result.output)
+    return result
 
 # HK: Function that inspects the node
 # Param: vm name
 # Returns: the output of the command: sudo docker node inspect $vm_name
 def inspect_swarm_node(vm_name):
     result = util.run_command("sudo docker node inspect "+vm_name)
-    return str(result.output)
+    return result
 
 
 
@@ -38,7 +38,7 @@ def find_candidate_instance_to_remove(base_name):
 
     vm_names = []
     result = util.run_command("sudo docker node ls")
-    words = str(result.output).replace("\\", " ").replace("\n", " ").split(" ")
+    words = result.replace("\\", " ").replace("\n", " ").split(" ")
 
     for word in words:
         if word.__contains__(base_name):
@@ -77,12 +77,10 @@ def get_macroservice(microservice):
     result = util.run_command(command)
 
     # The result will contain the line that has the node name
-    label_line = re.search('iot-(.*)', result.output).group(1)
+    label_line = re.search('iot-(.*)', result).group(1)
 
     # split the line to get only the node name
     macroservice = "iot-"+label_line.split(" ")[0]
-
-    print("Macroservice: "+macroservice+"\n")
 
     return macroservice
 
@@ -92,7 +90,7 @@ def check_macroservice_status(vm_name):
     result = util.run_command("sudo docker-machine ls")
 
     # split by newline
-    vms = str(result.output).split("\n")
+    vms = result.split("\n")
 
     # Ref: https://stackoverflow.com/questions/4843158/check-if-a-python-list-item-contains-a-string-inside-another-string
     # I basically use some fancy way to filter out the elements that contain any errors
@@ -108,7 +106,7 @@ def check_macroservice_status(vm_name):
 # Returns: worker token and the swarm master IP address
 def get_token_and_master_ip_port():
     result = util.run_command("sudo docker swarm join-token worker")
-    words = str(result.output).replace("\\", " ").replace("\n", " ").split(" ")
+    words = result.replace("\\", " ").replace("\n", " ").split(" ")
     token_index = words.index("--token") + 1
 
     token = words[token_index]
@@ -131,19 +129,8 @@ def get_macro_replicas(base_name):
     counter = 0
     result = util.run_command("sudo docker node ls")
 
-    arr = str(result.output).split("\n")
+    arr = result.split("\n")
     for i in range(0, len(arr)):
         if arr[i].__contains__(base_name):
             counter += 1
     return counter
-"""
-FOR Testing Purposes...ignore!
-def main():
-    print("hey")
-    os.environ["PYTHONUFFERED"] = "0"
-    os.environ["PKEY_PASSWORD"] = "/home/ubuntu/Elascale_secure/pass_key/pass_key_passphrase.txt"
-    os.environ["PKEY_FILE"] = "/home/ubuntu/Elascale_secure/pass_key/pass_key"
-    ch = get_macroservice("http_web")
-if __name__=="__main__":
-    main()
-"""

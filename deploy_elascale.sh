@@ -10,7 +10,7 @@ KIBANA_USERNAME="elascale"
 KIBANA_PASSWORD="savi_elascale"
 
 #Command-line arguments for provisioning VM
-DEFAULT_MON_VM_NAME="iot-monitor"
+VM_NAME="iot-monitor"
 LABEL_KEY="role" # We want to label the node role=monitor
 LABEL_VALUE="monitor" # same as above
 
@@ -31,7 +31,7 @@ then
     # Empty line for better printing 
     echo
 
-    $SCRIPTS_DIR/./provision_vm.sh $DEFAULT_MON_VM_NAME $USERNAME $PASSWORD $LABEL_KEY $LABEL_VALUE
+    $SCRIPTS_DIR/./provision_vm.sh $VM_NAME $USERNAME $PASSWORD $LABEL_KEY $LABEL_VALUE
 else 
    VM_NAME="$(cut -d':' -f1 <<<"$CHECK_MONITOR")"
    echo "monitor VM already deployed: $VM_NAME. Skipping creation step."
