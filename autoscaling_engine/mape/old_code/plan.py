@@ -8,29 +8,6 @@ Functions written by Hamzeh Khazaei (which is mostly) are noted on the comments 
 Functions written by me (which is one, as of now) are noted on the comments by RR
 """
 
-# HK: Function that inspects the microservice
-# Param: service name
-# Returns: the output of the command: sudo docker service inspect $service_name
-def inspect_service(service_name):
-    result = util.run_command("sudo docker service inspect "+service_name)
-    return result
-
-# HK: Function that inspects the macroservice
-# Param: vm name
-# Returns: the output of the command: sudo docker-machine inspect $vm_name
-def inspect_machine(vm_name):
-    result = util.run_command("sudo docker-machine inspect "+vm_name)
-    return result
-
-# HK: Function that inspects the node
-# Param: vm name
-# Returns: the output of the command: sudo docker node inspect $vm_name
-def inspect_swarm_node(vm_name):
-    result = util.run_command("sudo docker node inspect "+vm_name)
-    return result
-
-
-
 # HK: Function that finds the latest added machine for that macroservice
 # Param: base name of the macroservice (eg. iot-edge from the name: iot-edge.20170725)
 # Returns: the entire name of the latest added node (i.e. iot-edge.20170725)
@@ -49,19 +26,11 @@ def find_candidate_instance_to_remove(base_name):
     else:
         return ''
 
-# HK: Extract the original node name; the base name is always before '.'
-# We use base name as the name for finding VMs in the same family.
-# All VMs with the same prefix, i.e., before dot, are in the same group.
-# Param: entire name of the macroservice (eg. iot-edge.20170725)
-# Returns: the base name of that macroservice (eg. iot-edge)
-def get_macro_base_name(name):
-    return name.split('.')[0]
-
 # HK: Get the labels given a specific node
 # Param: node name
 # Returns: label(s) of that name (eg. loc=edge)
 def get_labels(node_name):
-    node_info = inspect_swarm_node(node_name)
+    node_info = util.run_command("sudo docker node inspect "+node_name)
     node_json = json.loads(node_info, encoding='utf8')
     if str(node_json[0]['Spec']).__contains__('Labels'):
         labels = dict(node_json[0]['Spec']['Labels'])
@@ -73,8 +42,7 @@ def get_labels(node_name):
 # Param: name of the microservice
 # Returns: the name of the macroservice that hosts that specific microservice
 def get_macroservice(microservice):
-    command = "sudo docker service ps "+microservice
-    result = util.run_command(command)
+    result = util.run_command("sudo docker service ps "+microservice)
 
     # The result will contain the line that has the node name
     label_line = re.search('iot-(.*)', result).group(1)
@@ -117,7 +85,7 @@ def get_token_and_master_ip_port():
 # Param: service name
 # Returns: the number of replicas for the given specific service
 def get_micro_replicas(service_name):
-    service_info = inspect_service(service_name)
+    service_info = util.run_command("sudo docker service inspect "+service_name)
     service_json = json.loads(service_info, encoding='utf8')
     current_replicas = int(service_json[0]['Spec']['Mode']['Replicated']['Replicas'])
     return current_replicas

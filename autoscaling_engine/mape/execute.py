@@ -3,8 +3,8 @@ import util
 import time
 import os
 import configparser
-import plan
 import engine_config
+from datetime import datetime
 
 def prepare_for_beats(vm_name):
 
@@ -42,7 +42,7 @@ def docker_machine_scale(vm_name, scale_type):
     if scale_type == 'scale-out':  # i.e., scale out
 
         # get info of the macroservice
-        vm_info = plan.inspect_machine(vm_name)
+        vm_info = util.run_command("sudo docker-machine inspect "+vm_name)
 
         vm_json = json.loads(vm_info, encoding='utf8')
 
@@ -54,7 +54,7 @@ def docker_machine_scale(vm_name, scale_type):
         print(new_vm_name + ' VM is being provisioned on the cloud ...')
 
         # Get the label from the base vm
-        label_key = plan.get_labels(vm_name)
+        label_key = util.get_labels(vm_name)
         for key in label_key:
             label= key
             value = label_key[key]
@@ -68,7 +68,7 @@ def docker_machine_scale(vm_name, scale_type):
             create_vm(new_vm_name, user_name, password, label, value)
 
             # Now, let's check whether it's working fine
-            any_err = plan.check_macroservice_status(new_vm_name)
+            any_err = util.check_macroservice_status(new_vm_name)
 
             if any_err:
                 print("Caught error! Deleting VM\n")
@@ -96,7 +96,7 @@ def docker_machine_scale(vm_name, scale_type):
 
     elif scale_type == 'scale-in':  # i.e., scale in
 
-        candidate_name = plan.find_candidate_instance_to_remove(vm_name)
+        candidate_name = util.find_candidate_instance_to_remove(vm_name)
 
         if candidate_name.__len__() > 0:
             remove_swarm_node(candidate_name)
@@ -145,7 +145,7 @@ def scale_microservice(service_name, value):
 
     print("### Scaling micro_service: "+service_name+" of value: "+str(value))
 
-    current_replica = plan.get_micro_replicas(service_name)
+    current_replica = util.get_micro_replicas(service_name)
     max_replica = int(micro_config.get(service_name, 'max_replica'))
     min_replica = int(micro_config.get(service_name, 'min_replica'))
 
@@ -161,7 +161,8 @@ def scale_microservice(service_name, value):
         return
 
     else:
-        print("====> Scaling microservice: " + service_name + " to: " + str(total_replica) +"\n")
+        st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+        print("----- Scaling microservice: " + service_name + " to: " + str(total_replica) +" at time: " + str(st) + "\n")
         result = util.run_command("sudo docker service scale "+service_name+"="+str(total_replica))
         return
 
@@ -173,9 +174,9 @@ def scale_macroservice(host_name, value):
 
     print("### Scaling macro_service: "+host_name+" of value: "+str(value))
 
-    base_name = plan.get_macro_base_name(host_name)
+    base_name = host_name.split('.')[0]
 
-    current_replica = plan.get_macro_replicas(base_name)
+    current_replica = util.get_macro_replicas(base_name)
 
     max_replica = int(macro_config.get(base_name, 'max_replica'))
     min_replica = int(macro_config.get(base_name, 'min_replica'))
@@ -193,10 +194,11 @@ def scale_macroservice(host_name, value):
         return
 
     else:
+        st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
         if value > 0:
-            print("====> Scaling out the macroservice: "+host_name+" by "+str(value)+"\n")
+            print("====> Scaling out the macroservice: "+host_name+" by "+str(value)+" at time: " + str(st) +"\n")
             docker_machine_scale(host_name, 'scale-out')  # scale-out
         else:
             #value < 0
-            print("====> Scaling in the macroservice: "+host_name+" by -"+str(value)+"\n")
+            print("====> Scaling in the macroservice: "+host_name+" by -"+str(value)+" at time: " + str(st) +"\n")
             docker_machine_scale(host_name, 'scale-in')  # scale-in
