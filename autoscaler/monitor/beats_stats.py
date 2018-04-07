@@ -1,4 +1,4 @@
-import engine_config
+import autoscaler.conf.engine_config as eng
 
 # Monitoring component of the MAPE-K loop (written by ByungChul Park, modified later by Rajsimman Ravi)
 
@@ -22,7 +22,7 @@ def get_microservices_utilization(es):
                     {
                         "range": {
                             "@timestamp": {
-                                "gte": engine_config.START_TIME,
+                                "gte": eng.START_TIME,
                                 "lte": "now",
                                 "format": "epoch_millis"
                             }
@@ -82,7 +82,7 @@ def get_microservices_utilization(es):
     utilization = {}
     for service in res['aggregations']['2']['buckets']:
         utilization[service['key']] = {'cpu': service['1']['value'], 'memory': service['3']['value'],
-                                       'net_rx': service['4']['value'], 'net_tx': service['5']['value'],
+                                       'netRx': service['4']['value'], 'netTx': service['5']['value'],
                                        'blockIO': service['6']['value']}
 
     return utilization
@@ -108,7 +108,7 @@ def get_macroservices_utilization(es):
                     {
                         "range": {
                             "@timestamp": {
-                                "gte": engine_config.START_TIME,
+                                "gte": eng.START_TIME,
                                 "lte": "now",
                                 "format": "epoch_millis"
                             }
@@ -123,7 +123,7 @@ def get_macroservices_utilization(es):
             "excludes": []
         },
         "aggs": {
-            "3": {
+            "5": {
                 "terms": {
                     "field": "beat.name",
                     "order": {
@@ -140,27 +140,43 @@ def get_macroservices_utilization(es):
                         "avg": {
                             "field": "system.memory.used.pct"
                         }
+                    },
+                    "3":{
+                        "avg":{
+                            "field": "system.network.in.bytes"
+                        }
+                    },
+                    "4": {
+                        "avg": {
+                           "field": "system.network.out.bytes"
+                        }
                     }
                 }
             }
         }
-    }
-                    )
+    })
+
     utilization = {}
-    data = res['aggregations']['3']['buckets']
+    data = res['aggregations']['5']['buckets']
     hosts_info = get_hosts_info(data)
     base_hosts = get_base_host_names(hosts_info)
 
     for base_host in base_hosts:
-        utilization[base_host] = {'cpu': 0, 'memory': 0, 'host_cnt': 0}
+        utilization[base_host] = {'cpu': 0, 'memory': 0, 'netRx': 0, 'netTx': 0, 'host_cnt': 0}
         cnt = 0
         for host in hosts_info:
             if str(host['name']).__contains__(base_host):
                 cnt += 1
                 utilization[base_host]['cpu'] += host['cpu']
                 utilization[base_host]['memory'] += host['memory']
+                utilization[base_host]['netRx'] += host['netRx']
+                utilization[base_host]['netTx'] += host['netTx']
+
+
         utilization[base_host]['cpu'] = utilization[base_host]['cpu'] / float(cnt)
         utilization[base_host]['memory'] = utilization[base_host]['memory'] / float(cnt)
+        utilization[base_host]['netRx'] = utilization[base_host]['netRx'] / float(cnt)
+        utilization[base_host]['netTx'] = utilization[base_host]['netTx'] / float(cnt)
         utilization[base_host]['host_cnt'] = cnt
 
     return utilization
@@ -173,7 +189,7 @@ def get_hosts_info(res):
     """
     hosts_info = []
     for host in res:
-        host_info = {'name': host['key'], 'cpu': 1 - float(host['1']['value']), 'memory': host['2']['value']}
+        host_info = {'name': host['key'], 'cpu': 1 - float(host['1']['value']), 'memory': host['2']['value'], 'netRx': host['3']['value'], 'netTx': host['4']['value']}
         hosts_info.append(host_info)
     return hosts_info
 

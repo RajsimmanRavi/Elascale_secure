@@ -6,7 +6,7 @@ CONFIG_NAME = CONFIG_PATH + "/config.ini"
 MICRO_CONFIG = CONFIG_PATH + "/microservices.ini"
 MACRO_CONFIG = CONFIG_PATH + "/macroservices.ini"
 # Frequency of monitoring in seconds;
-MONITORING_INTERVAL = 60
+MONITORING_INTERVAL = 10
 # List of microservices you want to ignore (in this case, the monitoring components)
 IGNORE_MICRO = "EK_monitor,beats,elascale_ui"
 # Ignore monitor VM

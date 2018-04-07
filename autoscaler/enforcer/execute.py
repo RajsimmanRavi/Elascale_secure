@@ -1,15 +1,17 @@
 import json
-import util
 import time
 import os
 import configparser
-import engine_config
 from datetime import datetime
+#import gevent
+
+from autoscaler.conf import engine_config as eng
+from autoscaler import util
 
 def prepare_for_beats(vm_name):
 
     # Read the current config file
-    config = util.read_config_file(engine_config.CONFIG_NAME)
+    config = util.read_config_file(eng.CONFIG_NAME)
 
     print('\nDeploying beats on the VM: ' + vm_name)
 
@@ -127,7 +129,7 @@ def delete_vm(vm_name):
 def create_vm(new_vm_name, user_name, password, label, value):
 
     # Read the config file and get the Elascale directory
-    config = util.read_config_file(engine_config.CONFIG_NAME)
+    config = util.read_config_file(eng.CONFIG_NAME)
 
     elascale_dir = config.get('swarm', 'elascale_root_dir')
 
@@ -141,7 +143,7 @@ def create_vm(new_vm_name, user_name, password, label, value):
 def scale_microservice(service_name, value):
 
     # Read the current config file
-    micro_config = util.read_config_file(engine_config.MICRO_CONFIG)
+    micro_config = util.read_config_file(eng.MICRO_CONFIG)
 
     print("### Scaling micro_service: "+service_name+" of value: "+str(value))
 
@@ -163,6 +165,7 @@ def scale_microservice(service_name, value):
     else:
         st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
         print("----- Scaling microservice: " + service_name + " to: " + str(total_replica) +" at time: " + str(st) + "\n")
+        #gevent.sleep(0)
         result = util.run_command("sudo docker service scale "+service_name+"="+str(total_replica))
         return
 
@@ -170,7 +173,7 @@ def scale_microservice(service_name, value):
 def scale_macroservice(host_name, value):
 
     # Read the current config file
-    macro_config = util.read_config_file(engine_config.MACRO_CONFIG)
+    macro_config = util.read_config_file(eng.MACRO_CONFIG)
 
     print("### Scaling macro_service: "+host_name+" of value: "+str(value))
 

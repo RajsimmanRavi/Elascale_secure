@@ -1,4 +1,4 @@
-import util
+from autoscaler import util
 import os
 import configparser
 

@@ -7,7 +7,10 @@ import time
 from tqdm import tqdm
 from prettytable import PrettyTable
 import configparser
-import engine_config
+
+import autoscaler.conf.engine_config as eng
+
+#import engine_config
 
 # This function basically gets a ssh connection to the swarm master
 # It gets the required information from the config file
@@ -33,9 +36,9 @@ def get_client(config_file, pkey_password_file, pkey_file):
 # This function basically executes the command on the ssh connection
 def run_command(command):
 
-    config_file = engine_config.CONFIG_NAME
-    pkey_password_file = engine_config.PKEY_PASSWORD
-    pkey_file = engine_config.PKEY_FILE
+    config_file = eng.CONFIG_NAME
+    pkey_password_file = eng.PKEY_PASSWORD
+    pkey_file = eng.PKEY_FILE
 
     client = get_client(config_file, pkey_password_file, pkey_file)
     stdin, stdout, stderr = client.exec_command(command, timeout=120)
@@ -52,6 +55,39 @@ def run_command(command):
             result = stdout.read()
 
     client.close()
+    return result
+
+def get_util_info(service, curr_util, config):
+    """ Fetches the current utilization  along with high and low thresholds defined in config file.
+
+    Args:
+        service: name of the service
+        curr_util: the current utilization data of all services
+        config: config file
+
+    Returns:
+        Dictionary of data:
+            result = {
+                "service" : xx,
+                "curr_cpu_util" : xx,
+                "curr_mem_util" : xx,
+                "high_cpu_threshold" : xx,
+                "low_cpu_threshold" : xx,
+                "high_mem_threshold" : xx,
+                "low_mem_threshold" : xx
+            }
+    """
+    result = {}
+    result["service"] = service
+    result["curr_cpu_util"] = "%.3f " % curr_util[service]['cpu'] # Round it to 3 decimal digits
+    result["curr_mem_util"] = "%.3f " % curr_util[service]['memory'] # Round it to 3 decimal digits
+    result["curr_netRx_util"] = "%.3f " % curr_util[service]['netRx'] # Round it to 3 decimal digits
+    result["curr_netTx_util"] = "%.3f " % curr_util[service]['netTx'] # Round it to 3 decimal digits
+    result["high_cpu_threshold"] = config.get(service, 'cpu_up_lim') # Ex second argument should be: cpu_up_lim
+    result["low_cpu_threshold"] = config.get(service, 'cpu_down_lim') # Ex second argument should be: cpu_low_lim
+    result["high_mem_threshold"] = config.get(service, 'memory_up_lim') # Ex second argument should be: cpu_up_lim
+    result["low_mem_threshold"] = config.get(service, 'memory_down_lim') # Ex second argument should be: cpu_low_lim
+
     return result
 
 # Read config file
@@ -76,20 +112,38 @@ def pretty_print(service_type, data):
     service = data["service"]
     curr_cpu = data["curr_cpu_util"]
     curr_mem = data["curr_mem_util"]
+    curr_netTx = data["curr_netTx_util"]
+    curr_netRx = data["curr_netRx_util"]
     high_cpu = data["high_cpu_threshold"]
     low_cpu = data["low_cpu_threshold"]
     high_mem = data["high_mem_threshold"]
     low_mem = data["low_mem_threshold"]
 
     x = PrettyTable()
-    x.field_names = [service_type+"service", low_cpu+" < CPU < "+high_cpu, low_mem+" < Memory < "+high_mem]
-    x.add_row([service, curr_cpu, curr_mem])
+    x.field_names = [service_type+"service", low_cpu+" < CPU < "+high_cpu, low_mem+" < Memory < "+high_mem, "Network Tx Bytes", "Network Rx Bytes"]
+    x.add_row([service, curr_cpu, curr_mem, curr_netTx, curr_netRx])
 
     print(x)
 
     x.clear_rows()
     x.clear()
 
+def compute_trajectory(cpu_status, mem_status):
+    """ Function to alert whether mutliple resources are crossing thresholds or not.
+
+    Args:
+        cpu_status: Keyword 'High', 'Normal' or 'Low' mentioning the status of cpu
+        mem_status: Keyword 'High', 'Normal' or 'Low' mentioning the status of memory
+
+    Returns:
+        status: Keyword 'High', 'Normal' or 'Low' mentioning the status of the resources
+    """
+    if cpu_status == "High" and mem_status == "High":
+        return "High"
+    elif cpu_status == "Low" and mem_status == "Low":
+        return "Low"
+    else:
+        return "Normal"
 
 def check_threshold(service, config_high_threshold, config_low_threshold, curr_util):
     """ Checks whether Utilization crossed discrete threshold

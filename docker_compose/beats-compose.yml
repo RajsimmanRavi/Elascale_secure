@@ -10,6 +10,7 @@ services:
       - /:/hostfs:ro
       - /home/ubuntu/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
       - /home/ubuntu/certs/elasticsearch_certificate.pem:/usr/share/metricbeat/elasticsearch_certificate.pem
+      #- /var/log/metricbeat/:/var/log/metricbeat
     networks:
       - host
     environment:
