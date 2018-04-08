@@ -2,7 +2,6 @@
 user_name = ubuntu
 master_ip = 10.2.1.12
 master_name = iot-master
-auth_mode = key
 elascale_root_dir = /home/ubuntu/Elascale_secure/
 elascale_config_dir = /home/ubuntu/Elascale_secure/config/
 
@@ -10,10 +9,13 @@ elascale_config_dir = /home/ubuntu/Elascale_secure/config/
 user_name = ubuntu
 ip = 10.2.1.12
 name = iot-master
-auth_mode = key
 
 [elasticsearch]
 ip = 10.6.1.3
 port = 9200
 ca_cert = /home/ubuntu/Elascale_secure/certs/elasticsearch_certificate.pem
-#ca_cert = /Elascale_secure/certs/elasticsearch_certificate.pem
+
+[ui]
+
+port = 8888
+

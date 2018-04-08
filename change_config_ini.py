@@ -8,7 +8,7 @@ import sys
 
 #This file takes 2 arguments: Host IP and Elasticsearch IP
 
-CONFIG_DIR="/home/ubuntu/Elascale_secure/config"
+CONFIG_DIR="/home/ubuntu/Elascale_secure/autoscaler/conf"
 HOST_IP=sys.argv[1]
 ELASTIC_IP=sys.argv[2]
 HOSTNAME=sys.argv[3]
@@ -20,12 +20,7 @@ cfgfile = open(CONFIG_DIR+"/config.ini", 'w')
 
 #Set the appropriate values on the respective config sections
 Config.set('swarm', 'master_ip', HOST_IP)
-Config.set('swarm', 'master_name', HOSTNAME)
-
-Config.set('docker-machine', 'ip', HOST_IP)
-Config.set('docker-machine', 'name', HOSTNAME)
-
-Config.set('elasticsearch', 'ip', ELASTIC_IP)
+Config.set('elasticsearch', 'elastic_ip', ELASTIC_IP)
 
 #Write and close the file
 Config.write(cfgfile)

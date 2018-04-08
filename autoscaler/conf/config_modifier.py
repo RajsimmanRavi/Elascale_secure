@@ -40,9 +40,9 @@ def add_config_sections(f_name, add_list, ignore_list, serv_option):
         if not (any(substring in curr for substring in ignore_list)):
             config.add_section(curr)
             config.set(curr, 'cpu_up_lim', '0.6')
-            config.set(curr, 'memory_up_lim', '1.0')
+            config.set(curr, 'mem_up_lim', '1.0')
             config.set(curr, 'cpu_down_lim', '0.4')
-            config.set(curr, 'memory_down_lim', '0.2')
+            config.set(curr, 'mem_down_lim', '0.2')
             config.set(curr, 'up_step', '1')
             config.set(curr, 'down_step', '-1')
             config.set(curr, 'max_replica', '4')
@@ -67,5 +67,4 @@ def change_config(micro_f_name, macro_f_name, ignore_micro_list, ignore_macro_li
 
     macroservices = util.run_command("sudo docker node ls --format '{{.Hostname}}'")
     curr_nodes = get_names(macroservices, "macro")
-
     add_config_sections(macro_f_name, curr_nodes, ignore_macro_list, "macro")
