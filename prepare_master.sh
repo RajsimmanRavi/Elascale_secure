@@ -21,10 +21,8 @@ sudo apt-get install -y apt-transport-https ca-certificates curl software-proper
 
 #Check if Docker is already installed
 check_docker=`command -v docker`
-
 if [ -z "$check_docker" ]
 then 
-
     #Add Docker's official GPG key
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
@@ -43,16 +41,6 @@ then
     #Check version
     echo "----- DOCKER VERSION -----"
     sudo docker version
-
-    # Create folder if not created
-    sudo mkdir -p /etc/docker 
-
-    #Need to set logging file configuration. 
-    sudo cp $SCRIPTS_DIR/config/daemon.json /etc/docker/
-
-    #Need to restart docker
-    sudo systemctl restart docker 
-
 else
     echo "Docker is already installed on this host!"
     sudo docker version
@@ -63,10 +51,8 @@ fi
 
 #Check if Docker is already installed
 check_docker_machine=`command -v docker-machine`
-
 if [ -z "$check_docker_machine" ]
 then 
-
     #Download it and put it on the /us/local/bin folder for command access
     curl -L https://github.com/docker/machine/releases/download/v0.12.2/docker-machine-$UNAME_S-$UNAME_M >/tmp/docker-machine &&
     chmod +x /tmp/docker-machine &&
@@ -76,7 +62,6 @@ then
     echo "----- DOCKER-MACHINE VERSION -----"
     sudo docker-machine version
 else 
-
     echo "Docker-machine is already installed on this machine"
     sudo docker-machine version
 fi
@@ -86,7 +71,6 @@ sudo docker swarm init
 
 #Let's Label this host as master
 sudo docker node update --label-add role=master $HOSTNAME
-
 #Check if SCRIPTS DIR exists. If not, fetch the scripts from the GitHub
 if [ ! -d "$SCRIPTS_DIR" ]
 then
@@ -99,14 +83,18 @@ then
 
     #********** Create certs directory for storing certificates ****************
     sudo mkdir $SCRIPTS_DIR/certs
+    
+    #Need to set logging file configuration. 
+    sudo cp $SCRIPTS_DIR/config/daemon.json /etc/docker/
+
+    #Need to restart docker
+    sudo systemctl restart docker 
 fi
 
 #*********** Install elasticdump *************
 check_elasticdump=`command -v elasticdump`
-
 if [ -z "$check_elasticdump" ]
 then
-
    #Get the latest version
    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
    
@@ -127,10 +115,8 @@ fi
 
 #*********** Install htpasswd for Kibana UI Basic Authentication *************
 check_htpasswd=`command -v htpasswd`
-
 if [ -z "$check_htpasswd" ]
 then
-
    # Get the Apache Utils 
    sudo apt-get install -y apache2-utils
 
