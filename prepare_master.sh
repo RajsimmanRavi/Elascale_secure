@@ -8,8 +8,7 @@ UNAME_M=`uname -m` #x86_64
 SCRIPTS_DIR="/home/ubuntu/Elascale_secure"
 
 #Requirements file for install pip packages for Autoscaler Manager and UI
-MANAGER_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/manager/requirements.txt"
-UI_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/ui/requirements.txt"
+AUTOSCALER_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/requirements.txt"
 
 #Remove the annoying 'sudo: unable to ...' warning 
 sudo sed -i "s/127.0.0.1 .*/127.0.0.1 localhost $HOSTNAME/g" /etc/hosts
@@ -141,13 +140,12 @@ else
 fi
 
 #*********** Install pip and necessary packages for Autoscaler and UI ***************
-sudo apt-get install -y python-setuptools python-dev build-essential
-
-sudo easy_install pip
-
-sudo pip install --upgrade pip
-
-sudo pip install -r $MANAGER_REQUIREMENTS
-sudo pip install -r $UI_REQUIREMENTS
-
+echo "---- GETTING PIP PACKAGES ----"
+get_pip_package=`sudo apt-get install -y python-setuptools python-dev build-essential`
+echo "---- INSTALLING PIP PACKAGE ----"
+install_pip=`sudo easy_install pip`
+echo "---- UPGRADING PIP PACKAGE ----"
+upgrade_pip=`sudo pip install --upgrade pip`
+echo "---- INSTALLING AUTOSCALER PACKAGES ----"
+install_autoscaler_packages=`sudo pip install -r $AUTOSCALER_REQUIREMENTS`
 echo "Everything is set. Now, you can start creating the platform for application development"
