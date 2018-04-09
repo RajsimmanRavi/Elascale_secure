@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 import os
 import json
 import requests
@@ -6,16 +6,16 @@ import sys
 import autoscaler.conf.engine_config as eng
 
 """
-    Function to read the Config ini file and return that variable.
+    Function to read a config file and return that variable.
 """
 def read_file(f_name):
-    Config = ConfigParser.ConfigParser()
-    Config.read(f_name)
+    config = configparser.ConfigParser()
+    config.read(f_name)
 
-    return Config
+    return config
 
 """
-    Function to insert modified values to the appropriate config ini file (micro or macro).
+    Function to insert modified values to the appropriate config file (micro or macro).
     Returns nothing. If error occurs, the try/except on the called function will catch the error
 
     The argument is the received data from client/browser end. The format is in json:
@@ -27,7 +27,7 @@ def read_file(f_name):
     The corresponding values are the newly modified values that needs to be written to file.
 """
 def write_file(data):
-    Config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
 
     #Convert string to json
     data = json.loads(data)
@@ -40,9 +40,9 @@ def write_file(data):
 
     # Read appropriate ini file
     if service_type == "micro":
-        Config.read(micro_file)
+        config.read(micro_file)
     else:
-        Config.read(macro_file)
+        config.read(macro_file)
 
     #delete service_type and service keys from dict
     del data["service_type"]
@@ -51,16 +51,16 @@ def write_file(data):
     for key, value in data.iteritems():
 
         # Set appropriate values
-        Config.set(service,key,value)
+        config.set(service,key,value)
 
     #Write the changes to file
 
     if service_type == "micro":
         with open(micro_file, 'wb') as configfile:
-            Config.write(configfile)
+            config.write(configfile)
     else:
         with open(macro_file, 'wb') as configfile:
-            Config.write(configfile)
+            config.write(configfile)
 
 """
     Function to insert dashboard ID inside the url link (used in the function down below)

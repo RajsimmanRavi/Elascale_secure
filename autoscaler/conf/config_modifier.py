@@ -1,9 +1,9 @@
-from autoscaler import util
 import os
 import configparser
+from autoscaler import util
+import autoscaler.conf.engine_config as eng
 
-def get_names(services, serv_option):
-
+def get_names(services):
     return_list = []
     services_list = services.split("\n")
     for serv in services_list:
@@ -11,60 +11,72 @@ def get_names(services, serv_option):
             return_list.append(serv.replace("'",""))
     return return_list
 
-def read_write_config(f_name, mode_option, config):
+def remove_config_sections(f_name, remove_list):
+    #print("Remove list: %s" %(str(remove_list)))
+    config = util.read_config_file(f_name)
 
-    with open(f_name, mode_option) as f:
-        if mode_option == "r":
-            config.readfp(f)
-        else:
-            config.write(f)
-
-    return config
-
-def empty_file(f_name):
-
-    config = configparser.ConfigParser()
-    config = read_write_config(f_name, "r", config)
-
-    # Empty the old file
     for sect in config.sections():
-        config.remove_section(sect)
+        if sect in remove_list:
+            config.remove_section(sect)
 
-    config = read_write_config(f_name, "w", config)
+    config = util.write_config_file(f_name, "w", config)
 
-def add_config_sections(f_name, add_list, ignore_list, serv_option):
-    ignore_list = ignore_list.split(",")
+def add_config_sections(f_name, add_list):
+    #print("Add list: %s" %(str(add_list)))
     config = configparser.ConfigParser()
     for curr in add_list:
-        # If microservice not part of ignore_list, then add it to config file
-        if not (any(substring in curr for substring in ignore_list)):
-            config.add_section(curr)
-            config.set(curr, 'cpu_up_lim', '0.6')
-            config.set(curr, 'mem_up_lim', '1.0')
-            config.set(curr, 'cpu_down_lim', '0.4')
-            config.set(curr, 'mem_down_lim', '0.2')
-            config.set(curr, 'up_step', '1')
-            config.set(curr, 'down_step', '-1')
-            config.set(curr, 'max_replica', '4')
-            config.set(curr, 'min_replica', '1')
+        config.add_section(curr)
+        config.set(curr, 'cpu_up_lim', '0.6')
+        config.set(curr, 'mem_up_lim', '1.0')
+        config.set(curr, 'cpu_down_lim', '0.4')
+        config.set(curr, 'mem_down_lim', '0.2')
+        config.set(curr, 'up_step', '1')
+        config.set(curr, 'down_step', '-1')
+        config.set(curr, 'max_replica', '4')
+        config.set(curr, 'min_replica', '1')
 
-            if serv_option == "macro":
-                config.set(curr, "max_no_container", '4')
+        if f_name == eng.MACRO_CONFIG:
+            config.set(curr, "max_no_container", '4')
 
-    new_config = read_write_config(f_name, "w", config)
+    new_config = util.write_config_file(f_name, "a", config)
 
-def change_config(micro_f_name, macro_f_name, ignore_micro_list, ignore_macro_list):
+def filter_list(services, ignore_list):
+    final_list = []
+    for serv in services:
+        if not (any(substring in serv for substring in ignore_list)):
+            final_list.append(serv)
+    return final_list
 
-    #First, empty the files
-    empty_file(micro_f_name)
-    empty_file(macro_f_name)
+def update_services(ignore_list, f_name):
+    # Make it into a list
+    ignore_list = ignore_list.split(',')
 
-    config = configparser.ConfigParser()
+    file_services = util.read_config_file(f_name).sections()
 
-    microservices = util.run_command("sudo docker service ls --format '{{.Name}}'")
-    curr_services = get_names(microservices, "micro")
-    add_config_sections(micro_f_name, curr_services, ignore_micro_list, "micro")
+    if f_name == eng.MICRO_CONFIG:
+        services = util.run_command("sudo docker service ls --format '{{.Name}}'")
+    else:
+        services = util.run_command("sudo docker node ls --format '{{.Hostname}}'")
 
-    macroservices = util.run_command("sudo docker node ls --format '{{.Hostname}}'")
-    curr_nodes = get_names(macroservices, "macro")
-    add_config_sections(macro_f_name, curr_nodes, ignore_macro_list, "macro")
+    running_services = get_names(services)
+    running_services = filter_list(running_services, ignore_list)
+
+    #print("file_services: %s" % str(file_services))
+    #print("running_services: %s" % str(running_services))
+
+    if len(file_services) != len(running_services):
+        # If more services are listed in file than it is actually running, then some services must have exited
+        if len(file_services) > len(running_services):
+            exited_services = list(set(file_services) - set(running_services))
+            # Remove these services from file
+            remove_config_sections(f_name, exited_services)
+        else:
+            # Else, new services are added, hence add them to file
+            new_services = list(set(running_services) - set(file_services))
+            # Add these services to file
+            add_config_sections(f_name, new_services)
+
+def update_config():
+
+    update_services(eng.IGNORE_MICRO, eng.MICRO_CONFIG)
+    update_services(eng.IGNORE_MACRO, eng.MACRO_CONFIG)

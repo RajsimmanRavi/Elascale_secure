@@ -1,0 +1,17 @@
+#!/bin/bash
+EXISTING_AUTOSCALER_MANAGER_PID=`ps -aux | grep autoscaler | grep manager | grep -v sudo | awk '{print $2}'`
+EXISTING_AUTOSCALER_UI_PID=`ps -aux | grep autoscaler | grep ui | grep -v sudo | awk '{print $2}'`
+
+if [[ -n ${EXISTING_AUTOSCALER_MANAGER_PID} ]]; then
+    sudo kill -9 ${EXISTING_AUTOSCALER_MANAGER_PID}
+    echo "Killed AUTOSCALER Manager instance with PID ${EXISTING_AUTOSCALER_MANAGER_PID}"
+else
+    echo "No current instance of AUTOSCALER Manager found to be running"
+fi
+
+if [[ -n ${EXISTING_AUTOSCALER_UI_PID} ]]; then
+    sudo kill -9 ${EXISTING_AUTOSCALER_UI_PID}
+    echo "Killed AUTOSCALER UI instance with PID ${EXISTING_AUTOSCALER_UI_PID}"
+else
+    echo "No current instance of AUTOSCALER UI found to be running"
+fi

@@ -30,8 +30,9 @@ class Elascale:
         self.ignore_micro = eng.IGNORE_MICRO
         self.ignore_macro = eng.IGNORE_MACRO
 
-        # Change micro and macroservices config to ignore the specified services
-        modify.change_config(eng.MICRO_CONFIG, eng.MACRO_CONFIG, eng.IGNORE_MICRO, eng.IGNORE_MACRO)
+        # Change micro and macroservices config.
+        # This will filter out ignored services and add new services or remove exited services
+        modify.update_config()
 
         self.micro_config = util.read_config_file(eng.MICRO_CONFIG)
         self.macro_config = util.read_config_file(eng.MACRO_CONFIG)
@@ -100,24 +101,3 @@ class Elascale:
                 #threads.append(gevent.spawn(alg, micro_status["status"], macro_status["status"], micro, macro_status["service"]))
 
         #gevent.joinall(threads)
-
-def main():
-
-    #gevent.signal(signal.SIGQUIT, gevent.kill)
-
-    elascale = Elascale()
-    elascale.set_elastic_client()
-
-    while True:
-        elascale.set_config()
-        elascale.set_stats()
-
-        #start_time = time.time()
-        elascale.compare_util()
-        #elapsed_time = time.time() - start_time
-        #print("Time took to complete comparison: %s" % elapsed_time)
-
-        util.progress_bar(eng.MONITORING_INTERVAL)
-
-if __name__=="__main__":
-    main()

@@ -55,6 +55,12 @@ def read_config_file(config_file):
     config.read(config_file)
     return config
 
+# Write to config file
+def write_config_file(f_name, mode, config_data):
+    with open(f_name, mode) as f:
+        config_data.write(f)
+    return config_data
+
 # Progress bar for our Time interval waiting to show how much time to wait
 def progress_bar(time_interval):
     print("Wait for %s secs" % time_interval)

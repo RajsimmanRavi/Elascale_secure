@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 import sys
 
 # This file basically updates the IP addresses of the host (where it is deployed) and Elasticsearch in the config.ini file
@@ -14,7 +14,7 @@ ELASTIC_IP=sys.argv[2]
 HOSTNAME=sys.argv[3]
 
 #Open Config file to read
-Config = ConfigParser.ConfigParser()
+Config = configparser.ConfigParser()
 Config.read(CONFIG_DIR+"/config.ini")
 cfgfile = open(CONFIG_DIR+"/config.ini", 'w')
 

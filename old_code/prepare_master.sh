@@ -4,12 +4,14 @@ HOSTNAME=`hostname`
 UNAME_S=`uname -s` #Linux
 UNAME_M=`uname -m` #x86_64
 
+#Variables needed for keypair creation for Elascale engine log into swarm-master
+#It uses ssh to login and execute scaling commands
+PASS_KEY_DIR="/home/ubuntu/Elascale_secure/pass_key"
+PASS_KEY_FILE="pass_key"
+PASSPHRASE="Elascale_to_swarm_master"
+
 #directory you want to create (if it doesn't exist)
 SCRIPTS_DIR="/home/ubuntu/Elascale_secure"
-
-#Requirements file for install pip packages for Autoscaler Manager and UI
-MANAGER_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/manager/requirements.txt"
-UI_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/ui/requirements.txt"
 
 #Remove the annoying 'sudo: unable to ...' warning 
 sudo sed -i "s/127.0.0.1 .*/127.0.0.1 localhost $HOSTNAME/g" /etc/hosts
@@ -46,7 +48,7 @@ then
     sudo docker version
 
     #Need to set logging file configuration. 
-    sudo cp $SCRIPTS_DIR/config/daemon.json /etc/docker/
+    sudo cp $SCRIPTS_DIR/daemon.json /etc/docker/
 
     #Need to restart docker
     sudo systemctl restart docker 
@@ -140,14 +142,25 @@ else
 
 fi
 
-#*********** Install pip and necessary packages for Autoscaler and UI ***************
-sudo apt-get install -y python-setuptools python-dev build-essential
+#************ Create SSH KEYPAIR for Elascale Engine to log into swarm-master for performing scaling commands
+if [ ! -d "$PASS_KEY_DIR" ] 
+then 
+    #create the dir
+    mkdir $PASS_KEY_DIR
+    echo "Created Pass_key directory at $PASS_KEY_DIR"
 
-sudo easy_install pip
+    #Create the keypair. Kept the Email address empty
+    ssh-keygen -t rsa -f $PASS_KEY_DIR/$PASS_KEY_FILE -P $PASSPHRASE -C ""
 
-sudo pip install --upgrade pip
+    #Add the pub key to authorized keys
+    cat $PASS_KEY_DIR/$PASS_KEY_FILE.pub >> /home/ubuntu/.ssh/authorized_keys
 
-sudo pip install -r $MANAGER_REQUIREMENTS
-sudo pip install -r $UI_REQUIREMENTS
+    #Add the passphrase to txt file 
+    echo "$PASSPHRASE" >> "$PASS_KEY_DIR/$PASS_KEY_FILE"_passphrase.txt
+
+    echo "Created keypair configuration for Elascale Engine!"
+else 
+    echo "$PASS_KEY_DIR has been already created. Skipping keypair configuration..."
+fi
 
 echo "Everything is set. Now, you can start creating the platform for application development"

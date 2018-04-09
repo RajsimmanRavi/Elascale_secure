@@ -4,7 +4,6 @@ import os
 import configparser
 from datetime import datetime
 #import gevent
-
 from autoscaler.conf import engine_config as eng
 from autoscaler import util
 
@@ -15,11 +14,11 @@ def prepare_for_beats(vm_name):
 
     print('\nDeploying beats on the VM: ' + vm_name)
 
-    # Get where the config files are located. This can be found on config.ini file
-    elascale_config_dir = config.get('swarm', 'elascale_config_dir')
+    # Get where the config files are located. This can be found on engine.config file
+    elascale_config_dir = eng.PLATFORM_CONFIG_DIR
 
-    # Get where the Elascale root directory are located. This can be found on config.ini file
-    elascale_certs_dir = config.get('swarm', 'elascale_certs_dir')
+    # Get where the Elascale root directory are located. This can be found on engine.config file
+    elascale_certs_dir = eng.PLATFORM_CERTS_DIR
 
     # Copy the metricbeat.yml on swarm-master to the new node
     result = util.run_command("sudo docker-machine scp "+elascale_config_dir+"metricbeat.yml "+vm_name+":~")

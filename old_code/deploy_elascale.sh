@@ -6,9 +6,8 @@ COMPOSE_DIR="$SCRIPTS_DIR/docker_compose"
 HOSTNAME=`hostname`
 MASTER_NODE=`$SCRIPTS_DIR/./get_node_role.sh master` # Gives hostname:IP format
 MASTER_IP="$(cut -d':' -f2 <<<"$MASTER_NODE")"
-UI_USERNAME="elascale"
-UI_PASSWORD="savi_elascale"
-ENGINE_CONFIG="$SCRIPTS_DIR/autoscaler/conf/engine_config.py"
+KIBANA_USERNAME="elascale"
+KIBANA_PASSWORD="savi_elascale"
 
 #Command-line arguments for provisioning VM
 VM_NAME="iot-monitor"
@@ -45,12 +44,13 @@ ELASTIC_IP="$(cut -d':' -f2 <<<"$ELASTIC_NODE")"
 echo "ELASTIC_IP: $ELASTIC_IP"
 
 # Now that we have the ELASTIC_IP and MASTER_IP, we can create the certificates
+
 sudo $SCRIPTS_DIR/./create_certs.sh $ELASTIC_IP $MASTER_IP
 
 echo "Created Certificates for Elasticsearch, Kibana and the Elascale UI"
 
 # Create Basic authentication for Kibana UI
-sudo htpasswd -b -c /home/ubuntu/Elascale_secure/config/.htpasswd $UI_USERNAME $UI_PASSWORD
+sudo htpasswd -b -c /home/ubuntu/Elascale_secure/config/.htpasswd $KIBANA_USERNAME $KIBANA_PASSWORD
 
 $SCRIPTS_DIR/./deploy_ek.sh $ELASTIC_IP $VM_NAME
 
@@ -72,18 +72,28 @@ sleep 2
 #Now, let's start the Elascale Engine and the UI
 
 #First, change the config.ini file to update the IP addresses of the hosts and Elastic IPs
-#python $SCRIPTS_DIR/change_config_ini.py $MASTER_IP $ELASTIC_IP $HOSTNAME
+python $SCRIPTS_DIR/change_config_ini.py $MASTER_IP $ELASTIC_IP $HOSTNAME
 
-#Second, change the engine_config.py as well as it is the global config for the Autoscaler and UI
-sed -i "s/ELASTIC_IP = \".*\"/ELASTIC_IP = \"$ELASTIC_IP\"/g" $ENGINE_CONFIG
-sed -i "s/UI_IP = \".*\"/UI_IP = \"$MASTER_IP\"/g" $ENGINE_CONFIG
-sed -i "s/UI_USERNAME = \".*\"/UI_USERNAME = \"$UI_USERNAME\"/g" $ENGINE_CONFIG
-sed -i "s/UI_PASSWORD = \".*\"/UI_PASSWORD = \"$UI_PASSWORD\"/g" $ENGINE_CONFIG
+# Change the elasticsearch IP address on the elascale-ui-compose.yml 
+sed -i "s/elasticsearch:.*/elasticsearch:$ELASTIC_IP\"/g" $COMPOSE_DIR/elascale-ui-compose.yml
 
-cd $SCRIPTS_DIR
+# Change HOST_IP to point to Master's IP Address
+sed -i "s/HOST_IP :.*/HOST_IP : \"$MASTER_IP\"/g" $COMPOSE_DIR/elascale-ui-compose.yml
 
-tmux new -d -s manager 'sudo python -m autoscaler.manager.main'
-tmux new -d -s ui 'sudo python -m autoscaler.ui.main'
+# Change ELASTIC_IP to point to ELASTIC_IP's IP Address
+sed -i "s/ELASTIC_IP :.*/ELASTIC_IP : \"$ELASTIC_IP\"/g" $COMPOSE_DIR/elascale-ui-compose.yml
+
+# We want to ignore the Docker node that is used for monitoring (i.e. node with role=monitor)  
+# Hence, we ignore them from macroservice_config.ini. We specify that as environment variable IGNORE_MACRO_LIST for Elascale_secure microservice
+# Analyze.py will take this list and ignore the node mentioned there.
+# Let's leave that out for now...come back to it later
+#sed -i "s/IGNORE_MACRO_LIST :.*/IGNORE_MACRO_LIST : \"$ELASTIC_HOST\"/g" $COMPOSE_DIR/elascale-ui-compose.yml
+
+# We don't bother with changing microservices, as it is hardcoded on elascale-ui-compose.yml. Hence, we ignore them. 
+
+#Now, deploy the Elascale stack
+echo "Starting Elascale Engine deployment"
+sudo docker stack deploy -c $COMPOSE_DIR/elascale-ui-compose.yml elascale
 
 echo "Deployed Everything. You can view the Elascale UI at: https://$MASTER_IP:8888"
 echo "For more detailed information, you can view the Kibana UI at: https://$ELASTIC_IP:5601"
