@@ -10,8 +10,6 @@ from autoscaler import util
 
 class Elascale:
 
-    config = util.read_config_file(eng.CONFIG_NAME)
-
     def __init__(self):
         self.ignore_micro = None
         self.ignore_macro = None
@@ -22,9 +20,7 @@ class Elascale:
         self.es = None
 
     def set_elastic_client(self):
-        port = int(self.config.get('elasticsearch', 'port'))
-        ca_cert = str(self.config.get('elasticsearch', 'ca_cert'))
-        self.es = Elasticsearch([{'host': 'elasticsearch', 'port': port}], use_ssl=True, ca_certs=ca_cert)
+        self.es = Elasticsearch([{'host': 'elasticsearch', 'port': 9200}], use_ssl=True, ca_certs=eng.NGINX_CERT)
 
     def set_config(self):
         self.ignore_micro = eng.IGNORE_MICRO

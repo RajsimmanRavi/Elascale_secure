@@ -1,9 +1,10 @@
-# ELASCALE PLATFORM DEPENDENT CONSTANT VARIABLES
-PLATFORM_CONFIG_DIR = "/home/ubuntu/Elascale_secure/config"
-PLATFORM_CERTS_DIR = "/home/ubuntu/Elascale_secure/certs"
+# ELASCALE PLATFORM DEPENDENT CONSTANT VARIABLE S
+PLATFORM_DIR = "/home/ubuntu/Elascale_secure"
+PLATFORM_CONFIG_DIR = PLATFORM_DIR + "/config"
+PLATFORM_CERTS_DIR = PLATFORM_DIR + "/certs"
 
 # AUTOSCALER DEPENDENT CONSTANT VARIABLES
-CONFIG_PATH = "/home/ubuntu/Elascale_secure/autoscaler/conf"
+CONFIG_PATH = PLATFORM_DIR + "/autoscaler/conf"
 MICRO_CONFIG = CONFIG_PATH + "/microservices.ini"
 MACRO_CONFIG = CONFIG_PATH + "/macroservices.ini"
 # Frequency of monitoring in seconds;
@@ -21,6 +22,6 @@ UI_IP = "10.2.1.12"
 UI_PORT = "8888"
 UI_USERNAME = "savi"
 UI_PASSWORD = "savi_elascale"
-NGINX_CERT = "/home/ubuntu/Elascale_secure/certs/elasticsearch_certificate.pem"
-UI_SELF_CERT = "/home/ubuntu/Elascale_secure/certs/elascale_ui_certificate.pem"
-UI_SELF_KEY = "/home/ubuntu/Elascale_secure/certs/elascale_ui_private_key.pem"
+NGINX_CERT = PLATFORM_DIR + "/certs/elasticsearch_certificate.pem"
+UI_SELF_CERT = PLATFORM_DIR + "/certs/elascale_ui_certificate.pem"
+UI_SELF_KEY = PLATFORM_DIR + "/certs/elascale_ui_private_key.pem"

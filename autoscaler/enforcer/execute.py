@@ -9,9 +9,6 @@ from autoscaler import util
 
 def prepare_for_beats(vm_name):
 
-    # Read the current config file
-    config = util.read_config_file(eng.CONFIG_NAME)
-
     print('\nDeploying beats on the VM: ' + vm_name)
 
     # Get where the config files are located. This can be found on engine.config file
@@ -127,13 +124,10 @@ def delete_vm(vm_name):
 
 def create_vm(new_vm_name, user_name, password, label, value):
 
-    # Read the config file and get the Elascale directory
-    config = util.read_config_file(eng.CONFIG_NAME)
-
-    elascale_dir = config.get('swarm', 'elascale_root_dir')
+    elascale_dir = eng.PLATFORM_DIR
 
     #provision_vm bash script
-    prov_vm_file = elascale_dir+"./provision_vm.sh"
+    prov_vm_file = elascale_dir+"/./provision_vm.sh"
 
     command = "sudo "+prov_vm_file+" "+new_vm_name+" "+user_name+" "+password+" "+label+" "+value
     result = util.run_command(command)

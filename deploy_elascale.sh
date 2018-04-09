@@ -64,8 +64,11 @@ echo "Starting Beats deployment"
 
 $SCRIPTS_DIR/./deploy_beats.sh $ELASTIC_IP
 
+# Add this to etc/hosts for Autoscaler to connect to elasticsearch
+sudo -- sh -c -e "echo '$ELASTIC_IP elasticsearch' >> /etc/hosts";
+
 #Let's create the Elascale UI
-echo "Deployed Beats. Starting Elascale service UI"
+echo "Deployed Beats. Starting Autoscaler and UI"
 
 sleep 2
 
