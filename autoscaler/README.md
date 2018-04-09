@@ -1,55 +1,16 @@
-# Elascale_v2
-Updated version of Elascale auto-scaling engine
+# Autoscaler
+The core Autoscaling engine for Elascale Platform. This is deployed on the Swarm Master Host OS. Previous version used to be deployed as Docker service. But, we found that it adds major overhead on development, deployment, latency issues etc. Hence, depracating the development of utilizing Docker services/containers to deploy Autoscaler and UI. 
 
-## Docker container ##
-The container for this engine is: `perplexedgamer/elascale_v2:v2.1`
+# UI
+The UI showcases some Kibana dashboards and can be used for configuration purposes as well. 
 
-## Deployment ##
-You can either deploy it as a container (docker service) or locally.
+# Execution
+You can run the application on a tmux/screen session using the following command:
 
-### Container ###
+```tmux new -d -s manager 'sudo python -m autoscaler.manager.main'```
 
-You can deploy it as a docker service (or stack) if you use a (similar) docker-compose yaml:
+You can run the UI on a tmux/screen session using the following command:
 
-```
-version: '3.1'
+```tmux new -d -s ui 'sudo python -m autoscaler.ui.main'```
 
-services:
-   v2:
-     image: perplexedgamer/elascale_v2:v2.1
-     volumes:
-       - /home/ubuntu/Elascale/config:/Elascale/conf
-     environment:
-       PYTHONUNBUFFERED :   "1"
-       PKEY_PASSWORD    : /run/secrets/pkey_password
-       PKEY_FILE        : /run/secrets/pkey_file
-     secrets:
-       - pkey_password
-       - pkey_file
-
-secrets:
-   pkey_password:
-     file: /home/ubuntu/Elascale/pass_key/pass_key_passphrase.txt
-   pkey_file:
-     file: /home/ubuntu/Elascale/pass_key/pass_key
-```
-
-#### NOTE: ####
-Make sure you have the appropriate pass_key_passphrase.txt (password to private key) and pass_key (private key). 
-The engine will use ssh to connect to the swarm-master (information on conf/config.ini file). 
-Also, you need to edit conf/config.ini file to modify the IP addresses of swarm-master and elasticsearch host. 
-
-### Local host ###
-
-You can simply fetch the source code from the repository and modify the conf/config.ini file to modify the IP addresses of swarm-master and elasticsearch host.
-You should also uncomment the following code on mape/analyze.py (in the bottom) to initialize the OS ENV variables:
-
-```
-os.environ["PYTHONUFFERED"] = "0"
-os.environ["PKEY_PASSWORD"] = "/home/ubuntu/Elascale/pass_key/pass_key_passphrase.txt"
-os.environ["PKEY_FILE"] = "/home/ubuntu/Elascale/pass_key/pass_key"
-```
-
-#### NOTE ####
-
-Make sure the pass_key_passphrase.txt (password to the private key) and pass_key (private key) are correct for Elascale engine to log into the localhost as ssh user (ubuntu).
+Note: Make sure you change your folder to: Elascale_secure (eg. /home/ubuntu/Elascale_secure) 
