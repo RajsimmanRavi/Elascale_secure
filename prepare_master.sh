@@ -44,6 +44,9 @@ then
     echo "----- DOCKER VERSION -----"
     sudo docker version
 
+    # Create folder if not created
+    sudo mkdir -p /etc/docker 
+
     #Need to set logging file configuration. 
     sudo cp $SCRIPTS_DIR/config/daemon.json /etc/docker/
 
