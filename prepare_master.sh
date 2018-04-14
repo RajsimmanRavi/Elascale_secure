@@ -8,8 +8,7 @@ UNAME_M=`uname -m` #x86_64
 SCRIPTS_DIR="/home/ubuntu/Elascale_secure"
 
 #Requirements file for install pip packages for Autoscaler Manager and UI
-MANAGER_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/manager/requirements.txt"
-UI_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/ui/requirements.txt"
+AUTOSCALER_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/requirements.txt"
 
 #Remove the annoying 'sudo: unable to ...' warning 
 sudo sed -i "s/127.0.0.1 .*/127.0.0.1 localhost $HOSTNAME/g" /etc/hosts
@@ -22,10 +21,8 @@ sudo apt-get install -y apt-transport-https ca-certificates curl software-proper
 
 #Check if Docker is already installed
 check_docker=`command -v docker`
-
 if [ -z "$check_docker" ]
 then 
-
     #Add Docker's official GPG key
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 
@@ -44,13 +41,6 @@ then
     #Check version
     echo "----- DOCKER VERSION -----"
     sudo docker version
-
-    #Need to set logging file configuration. 
-    sudo cp $SCRIPTS_DIR/config/daemon.json /etc/docker/
-
-    #Need to restart docker
-    sudo systemctl restart docker 
-
 else
     echo "Docker is already installed on this host!"
     sudo docker version
@@ -61,10 +51,8 @@ fi
 
 #Check if Docker is already installed
 check_docker_machine=`command -v docker-machine`
-
 if [ -z "$check_docker_machine" ]
 then 
-
     #Download it and put it on the /us/local/bin folder for command access
     curl -L https://github.com/docker/machine/releases/download/v0.12.2/docker-machine-$UNAME_S-$UNAME_M >/tmp/docker-machine &&
     chmod +x /tmp/docker-machine &&
@@ -74,7 +62,6 @@ then
     echo "----- DOCKER-MACHINE VERSION -----"
     sudo docker-machine version
 else 
-
     echo "Docker-machine is already installed on this machine"
     sudo docker-machine version
 fi
@@ -84,7 +71,6 @@ sudo docker swarm init
 
 #Let's Label this host as master
 sudo docker node update --label-add role=master $HOSTNAME
-
 #Check if SCRIPTS DIR exists. If not, fetch the scripts from the GitHub
 if [ ! -d "$SCRIPTS_DIR" ]
 then
@@ -97,14 +83,18 @@ then
 
     #********** Create certs directory for storing certificates ****************
     sudo mkdir $SCRIPTS_DIR/certs
+    
+    #Need to set logging file configuration. 
+    sudo cp $SCRIPTS_DIR/config/daemon.json /etc/docker/
+
+    #Need to restart docker
+    sudo systemctl restart docker 
 fi
 
 #*********** Install elasticdump *************
 check_elasticdump=`command -v elasticdump`
-
 if [ -z "$check_elasticdump" ]
 then
-
    #Get the latest version
    curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
    
@@ -125,10 +115,8 @@ fi
 
 #*********** Install htpasswd for Kibana UI Basic Authentication *************
 check_htpasswd=`command -v htpasswd`
-
 if [ -z "$check_htpasswd" ]
 then
-
    # Get the Apache Utils 
    sudo apt-get install -y apache2-utils
 
@@ -141,6 +129,7 @@ else
 fi
 
 #*********** Install pip and necessary packages for Autoscaler and UI ***************
+<<<<<<< HEAD
 # This is for Python 2
 #sudo apt-get install -y python-setuptools python-dev build-essential
 #sudo easy_install pip
@@ -153,4 +142,14 @@ sudo pip install --upgrade pip
 sudo pip install -r $MANAGER_REQUIREMENTS
 sudo pip install -r $UI_REQUIREMENTS
 
+=======
+echo "---- GETTING PIP PACKAGES ----"
+get_pip_package=`sudo apt-get install -y python-setuptools python-dev build-essential`
+echo "---- INSTALLING PIP PACKAGE ----"
+install_pip=`sudo easy_install pip`
+echo "---- UPGRADING PIP PACKAGE ----"
+upgrade_pip=`sudo pip install --upgrade pip`
+echo "---- INSTALLING AUTOSCALER PACKAGES ----"
+install_autoscaler_packages=`sudo pip install -r $AUTOSCALER_REQUIREMENTS`
+>>>>>>> 4f31df6a96a215262698ba1e511ae69fffda0087
 echo "Everything is set. Now, you can start creating the platform for application development"

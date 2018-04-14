@@ -3,3 +3,4 @@ configparser
 tqdm
 paramiko
 spur
+tornado
