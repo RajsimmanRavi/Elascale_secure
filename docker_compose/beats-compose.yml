@@ -26,7 +26,7 @@ services:
       - /home/ubuntu/dockbeat.yml:/etc/dockbeat/dockbeat.yml
       - /home/ubuntu/certs/elasticsearch_certificate.pem:/etc/dockbeat/elasticsearch_certificate.pem
       - /volumes/dockbeat-logs/:/var/logs/dockbeat
-      - /tmp/dockbeat/:/tmp/dockbeat
+      #- /tmp/dockbeat/:/tmp/dockbeat
     extra_hosts:
       - "elasticsearch:10.6.1.3"
 networks:

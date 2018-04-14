@@ -10,7 +10,7 @@ MACRO_CONFIG = CONFIG_PATH + "/macroservices.ini"
 # Frequency of monitoring in seconds;
 MONITORING_INTERVAL = 10
 # List of microservices you want to ignore (eg. monitoring components)
-IGNORE_MICRO = "EK_monitor,beats,elascale_ui"
+IGNORE_MICRO = "EK_monitor,beats,cass"
 # List of macroservices you want to ignore (eg. monitor VM)
 IGNORE_MACRO = "iot-monitor"
 # For monitoring dockbeat and metricbeat stats. We look into last 30 seconds of metric data; the value is an average during 30 seconds

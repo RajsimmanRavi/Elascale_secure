@@ -42,22 +42,6 @@ output:
       overwrite: false
     tls:
       certificate_authorities: ["/etc/dockbeat/elasticsearch_certificate.pem"]
-  ### Store it in file as well for anomaly detection purposes
-  file:
-    # Path to the directory where to save the generated files. The option is mandatory.
-    path: "/tmp/dockbeat"
-
-    # Name of the generated files. The default is `dockbeat` and it generates files: `dockbeat`, `dockbeat.1`, `dockbeat.2`, etc.
-    filename: dockbeat
-
-    # Maximum size in kilobytes of each file. When this size is reached, the files are
-    # rotated. The default value is 10240 kB.
-    rotate_every_kb: 10000
-
-    # Maximum number of files under path. When this number of files is reached, the
-    # oldest file is deleted and the rest are shifted from last to first. The default
-    # is 7 files.
-    number_of_files: 7
 shipper:
 logging:
   to_syslog: false

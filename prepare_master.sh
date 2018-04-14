@@ -141,9 +141,12 @@ else
 fi
 
 #*********** Install pip and necessary packages for Autoscaler and UI ***************
-sudo apt-get install -y python-setuptools python-dev build-essential
+# This is for Python 2
+#sudo apt-get install -y python-setuptools python-dev build-essential
+#sudo easy_install pip
 
-sudo easy_install pip
+# I upgraded the code to Python 3, hence installing that
+sudo apt-get -y install python3-pip
 
 sudo pip install --upgrade pip
 

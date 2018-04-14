@@ -66,10 +66,13 @@ class Elascale:
 
         # Then check whether the macroservice can handle the load to spin another microservice
         cpu_status = util.check_threshold(service, data["high_cpu_threshold"], data["low_cpu_threshold"], data["curr_cpu_util"])
-        mem_status = util.check_threshold(service, data["high_mem_threshold"], data["low_mem_threshold"], data["curr_mem_util"])
 
-        status = util.compute_trajectory(cpu_status, mem_status)
+        # RR: Some services utilize cpu more than memory, hence autoscaler ignores if both are computed. So, I'm turning this off for now
+        #mem_status = util.check_threshold(service, data["high_mem_threshold"], data["low_mem_threshold"], data["curr_mem_util"])
+        #status = util.compute_trajectory(cpu_status, mem_status)
 
+        status = cpu_status
+        print(status)
         result = {}
         result["service"] = service
         result["status"] = status

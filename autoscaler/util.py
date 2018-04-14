@@ -1,40 +1,44 @@
 import os
 import sys
-import re
 import json
 import subprocess as sp
 import time
+from datetime import datetime
 from tqdm import tqdm
 from prettytable import PrettyTable
 import configparser
 import autoscaler.conf.engine_config as eng
 #import paramiko # not needed anymore
 
-def run_command(command):
-    p = sp.Popen(command, shell=True, stdout=sp.PIPE)
-    output, err = p.communicate()
+def get_vm_info(vm):
+    """ Function to fetch vm information. Used for creating another vm with same specs.
+    Args: vm name
+    Returns: vm info dict
+    """
+    inspect_vm = run_command("sudo docker-machine inspect "+vm)
+    vm_json = json.loads(inspect_vm, encoding='utf8')
 
-    return output
+    vm_info = {}
+
+    vm_info["username"] = vm_json['Driver']['Username']
+    vm_info["password"] = vm_json['Driver']['Password']
+    vm_info["auth_url"] = vm_json['Driver']['AuthUrl']
+    vm_info["region"] = vm_json['Driver']['Region']
+    vm_info["tenant"] = vm_json['Driver']['TenantName']
+    vm_info["flavor"] = vm_json['Driver']['FlavorName']
+    vm_info["image"] = vm_json['Driver']['ImageName']
+    vm_info["network_name"] = vm_json['Driver']['NetworkName']
+    vm_info["network_id"] = vm_json['Driver']['NetworkId']
+
+    return vm_info
 
 def get_util_info(service, curr_util, config):
     """ Fetches the current utilization  along with high and low thresholds defined in config file.
-
     Args:
         service: name of the service
         curr_util: the current utilization data of all services
         config: config file
-
-    Returns:
-        Dictionary of data:
-            result = {
-                "service" : xx,
-                "curr_cpu_util" : xx,
-                "curr_mem_util" : xx,
-                "high_cpu_threshold" : xx,
-                "low_cpu_threshold" : xx,
-                "high_mem_threshold" : xx,
-                "low_mem_threshold" : xx
-            }
+    Returns: dictionary of result data
     """
     result = {}
     result["service"] = service
@@ -48,6 +52,152 @@ def get_util_info(service, curr_util, config):
     result["low_mem_threshold"] = config.get(service, 'mem_down_lim') # Ex second argument should be: cpu_low_lim
 
     return result
+
+def get_label(node_name):
+    """ Function that returns the label of a specific docker node (eg. label can be loc=edge).
+        Args: node_name: name of the docker node
+        Returns: dictionary of the label: dict["label"] = "value"
+    """
+    return_dict = {}
+    cmd = "sudo docker node inspect -f '{{ range $k, $v := .Spec.Labels }}{{ $k }}={{ $v }} {{end}}' "+node_name
+    labels = run_command(cmd)
+    return_dict[labels.split("=")[0]] = labels.split("=")[1]
+    return return_dict
+
+def get_macroservice(micro):
+    cmd = "sudo docker service ps "+micro+" --format '{{ .Node }}'"
+    result = run_command(cmd)
+    # Get only one, if more returned
+    macro = result.split("\n")[0]
+    return macro
+
+def get_micro_replicas(micro):
+    cmd = "sudo docker service inspect "+micro+" -f '{{ .Spec.Mode.Replicated.Replicas }}'"
+    curr_replicas = run_command(cmd)
+    return curr_replicas
+
+# HK: The function gets the number of replicas for a given specific node at that point
+# Param: base name of that vm (eg. iot-edge from the name: iot-edge.20170725)
+# Returns: the number of replicas for the given node
+def get_macro_replicas(base_name):
+    counter = 0
+    result = run_command("sudo docker node ls")
+
+    arr = result.split("\n")
+    for i in range(0, len(arr)):
+        if arr[i].__contains__(base_name):
+            counter += 1
+    return counter
+
+def get_latest_vm(vm_name):
+    """ Function to get the latest added vm, given the base name.
+        As more macroservices are created (to manage workload), the added vms' names contain a prefix and suffix separated by '.'
+        For example, if more macroservices are needed for iot-edge, then the names would be iot-edge.xx
+        So, given the base_name: iot-edge, we find the last added vm (based on their created timestamps)
+
+        Args: vm_name: base vm name of the macroservice (Eg. 'iot-xxxx' of 'iot-xxxx.xx' )
+        Returns: vm name that was last added
+    """
+    cmd = "sudo docker node ls -f 'name="+vm_name+"' --format '{{.Hostname}}'"
+    result = run_command(cmd)
+    curr_vms = result.split('\n')
+
+    # Run this loop iteratively, so that you can store the first vm's created timestamp as latest_time.
+    # You need this to compare with other vm's timestamps and find the latest vm created
+    for i in range(len(curr_vms)):
+        # Remove +0000 UTC bs from the string to properly match with string format
+        cmd = "sudo docker node inspect -f '{{ .CreatedAt }}' "+curr_vms[i]
+        created_at = run_command(cmd)[:-13]
+        created_datetime = datetime.strptime(created_at, '%Y-%m-%d %H:%M:%S.%f')
+
+        if i == 0:
+            latest_time = created_datetime
+            latest_vm = curr_vms[i]
+        else:
+            # If created time of this VM is later than latest_time, then this is the last vm added.
+            if created_datetime > latest_time:
+                latest_time = created_datetime
+                latest_vm = curr_vms[i]
+
+    return latest_vm
+
+"""
+def run_command(command):
+    p = sp.Popen(command, shell=True, stdout=sp.PIPE)
+    output, err = p.communicate()
+
+    output = str(output.strip(), 'utf-8')
+    return output
+"""
+
+def run_command(command):
+    try:
+        process = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT)
+        output, err = process.communicate(timeout=180)
+    except Exception as e:
+        print("Caught error while running command...Exiting!")
+        print(str(e))
+        sys.exit(1)
+
+    if process.returncode != 0:
+        raise sp.CalledProcessError(process.returncode, command)
+        sys.exit(1)
+    else:
+        output = str(output.strip(), 'utf-8')
+
+    return output
+
+def add_vm(vm_name):
+    # get info of the vm
+    vm_info = get_vm_info(vm_name)
+    new_vm_name = vm_name + "." + time.strftime("%Y%m%d%H%M%S", time.localtime())
+
+    print(new_vm_name + ' VM is being provisioned on the cloud ...')
+
+    # Get the label from the base vm
+    label_dict = get_label(vm_name)
+
+    create_vm_cmd = "sudo docker-machine create --driver openstack \
+        --openstack-auth-url "+vm_info['auth_url']+" \
+        --openstack-insecure \
+        --openstack-flavor-name "+vm_info['flavor']+" --openstack-image-name "+vm_info['image']+" \
+        --openstack-tenant-name "+vm_info['tenant']+" --openstack-region "+vm_info['region']+" \
+        --openstack-net-name "+vm_info['network_name']+" \
+        --openstack-sec-groups savi-iot --openstack-ssh-user ubuntu \
+        --openstack-username "+vm_info['username']+" --openstack-password "+vm_info['password']+" "+new_vm_name
+
+    # These all have try/except blocks when executing commands, hence not adding extra try/excepts
+    run_command(create_vm_cmd)
+    add_swarm_node(new_vm_name)
+    add_label(new_vm_name, label_dict)
+    prepare_for_beats(new_vm_name)
+
+    return new_vm_name
+
+def remove_vm(vm_name):
+    node_name = get_latest_vm(vm_name)
+    print("\nRemoving the swarm node: " + node_name+"\n")
+    remove_swarm_node(node_name)
+    run_command("sudo docker-machine rm --force "+node_name)
+
+def add_swarm_node(vm_name):
+    cmd="sudo docker swarm join-token worker | grep -v 'add' | tr -d '/\' 2> /dev/null"
+    result = run_command(cmd)
+
+    join_cmd = "sudo "+result
+    execute_on_vm_cmd = "sudo docker-machine ssh "+vm_name+" "+join_cmd
+    result = run_command(execute_on_vm_cmd)
+
+def remove_swarm_node(node_name):
+    result = run_command("sudo docker-machine ssh "+node_name+ " sudo docker swarm leave")
+    result = run_command("sudo docker node rm --force "+node_name)
+
+def add_label(vm_name,label_dict):
+    label = list(label_dict.keys())[0]
+    value = list(label_dict.values())[0]
+
+    cmd = "sudo docker node update --label-add "+label+"="+value+" "+vm_name
+    run_command(cmd)
 
 # Read config file
 def read_config_file(config_file):
@@ -132,147 +282,33 @@ def check_threshold(service, config_high_threshold, config_low_threshold, curr_u
     else:
         return "Normal"
 
+def prepare_for_beats(vm_name):
 
-# HK: Function that finds the latest added machine for that macroservice
-# Param: base name of the macroservice (eg. iot-edge from the name: iot-edge.20170725)
-# Returns: the entire name of the latest added node (i.e. iot-edge.20170725)
-def find_candidate_instance_to_remove(base_name):
+    print('\nPreparing VM for Beats: ' + vm_name)
 
-    vm_names = []
-    result = run_command("sudo docker node ls")
-    words = result.replace("\\", " ").replace("\n", " ").split(" ")
+    # Get where the config files are located. This can be found on engine.config file
+    elascale_config_dir = eng.PLATFORM_CONFIG_DIR
 
-    for word in words:
-        if word.__contains__(base_name):
-            vm_names.append(word)
-    if vm_names.__len__() > 0:
-        vm_names.sort(reverse=True)
-        return vm_names[0]  # return the instance that had been added lately.
-    else:
-        return ''
+    # Get where the Elascale root directory are located. This can be found on engine.config file
+    elascale_certs_dir = eng.PLATFORM_CERTS_DIR
 
-# HK: Get the labels given a specific node
-# Param: node name
-# Returns: label(s) of that name (eg. loc=edge)
-def get_labels(node_name):
-    node_info = run_command("sudo docker node inspect "+node_name)
-    node_json = json.loads(node_info, encoding='utf8')
-    if str(node_json[0]['Spec']).__contains__('Labels'):
-        labels = dict(node_json[0]['Spec']['Labels'])
-        return labels
-    else:
-        return ''
+    # Copy the metricbeat.yml on swarm-master to the new node
+    run_command("sudo docker-machine scp "+elascale_config_dir+"/metricbeat.yml "+vm_name+":~")
 
-# RR: This function gets the name of the node that has the microservices running
-# Param: name of the microservice
-# Returns: the name of the macroservice that hosts that specific microservice
-def get_macroservice(microservice):
-    result = run_command("sudo docker service ps "+microservice)
+    # Change the hostname on the new metricbeat.yml
+    sed_command = 'sed -i "s/name: ".*"/name: \\"'+vm_name+'\\"/g" ~/metricbeat.yml'
+    run_command("sudo docker-machine ssh "+vm_name+" '"+sed_command+"'")
 
-    # The result will contain the line that has the node name
-    label_line = re.search('iot-(.*)', result).group(1)
+    # Copy the dockbeat.yml on swarm-master to the new node
+    run_command("sudo docker-machine scp "+elascale_config_dir+"/dockbeat.yml "+vm_name+":~")
 
-    # split the line to get only the node name
-    macroservice = "iot-"+label_line.split(" ")[0]
+    # Create certs directory in home directory to store the elasticsearch_certificate.pem
+    run_command("sudo docker-machine ssh "+vm_name+" mkdir ~/certs")
 
-    return macroservice
+    # Copy elasticsearch_certificate.yml to the new machine
+    run_command("sudo docker-machine scp "+elascale_certs_dir+"/elasticsearch_certificate.pem "+vm_name+":~/certs/")
 
-# RR: This function fetches the error status (if any) of the macroservice
-# This is mainly used when creating a vm (or macroservice)
-def check_macroservice_status(vm_name):
-    result = run_command("sudo docker-machine ls")
+    # Create /volumes/dockbeat-logs dir on the new node (required for dockbeat to work properly)
+    run_command("sudo docker-machine ssh "+vm_name+" sudo mkdir -p /volumes/dockbeat-logs/")
 
-    # split by newline
-    vms = result.split("\n")
-
-    # Ref: https://stackoverflow.com/questions/4843158/check-if-a-python-list-item-contains-a-string-inside-another-string
-    # I basically use some fancy way to filter out the elements that contain any errors
-    # If none found, I return empty []
-    filters = ["Unknown", "Timeout"]
-    error = [ x for x in vms if any(xx in x for xx in filters)]
-
-    return error
-
-# HK: This function gets the token in order for the node to join as a worker.
-# It also fetches the swarm master's IP address
-# Param: -
-# Returns: worker token and the swarm master IP address
-def get_token_and_master_ip_port():
-    result = run_command("sudo docker swarm join-token worker")
-    words = result.replace("\\", " ").replace("\n", " ").split(" ")
-    token_index = words.index("--token") + 1
-
-    token = words[token_index]
-    master_ip_port = words[-3]
-    return token, master_ip_port
-
-# HK: This function gets the number of replicas for a given specific service at that point
-# Param: service name
-# Returns: the number of replicas for the given specific service
-def get_micro_replicas(service_name):
-    service_info = run_command("sudo docker service inspect "+service_name)
-    service_json = json.loads(service_info, encoding='utf8')
-    current_replicas = int(service_json[0]['Spec']['Mode']['Replicated']['Replicas'])
-    return current_replicas
-
-# HK: The function gets the number of replicas for a given specific node at that point
-# Param: base name of that vm (eg. iot-edge from the name: iot-edge.20170725)
-# Returns: the number of replicas for the given node
-def get_macro_replicas(base_name):
-    counter = 0
-    result = run_command("sudo docker node ls")
-
-    arr = result.split("\n")
-    for i in range(0, len(arr)):
-        if arr[i].__contains__(base_name):
-            counter += 1
-    return counter
-
-"""
-RR: This was the old method of running commands (using paramiko client to ssh into the same machine).
-    This adds a lot of complexity and overhead to develop/deploy the autoscaler. Hence removing it.
-# This function basically gets a ssh connection to the swarm master
-# It gets the required information from the config file
-def get_client(config_file, pkey_password_file, pkey_file):
-
-    config = read_config_file(config_file)
-    f = open(pkey_password_file, 'r')
-    pkey_password = f.read().replace('\n', '')
-
-    host = config.get('swarm', 'master_ip')
-    user_name = config.get('swarm', 'user_name')
-
-    try:
-        client = paramiko.SSHClient()
-        client.load_system_host_keys()
-        client.set_missing_host_key_policy(paramiko.WarningPolicy())
-        client.connect(host, username=user_name, password=pkey_password, key_filename=pkey_file)
-    except paramiko.SSHException as e:
-        print(str(e))
-
-    return client
-
-# This function basically executes the command on the ssh connection
-def run_command(command):
-
-    config_file = eng.CONFIG_NAME
-    pkey_password_file = eng.PKEY_PASSWORD
-    pkey_file = eng.PKEY_FILE
-
-    client = get_client(config_file, pkey_password_file, pkey_file)
-    stdin, stdout, stderr = client.exec_command(command, timeout=120)
-    exit_status = stdout.channel.recv_exit_status()
-
-    if exit_status == 0:
-        result = ""
-        # If you are provisioning VM, you want to see the output of command
-        if "provision_vm" in command:
-            for line in stdout:
-                print('... ' + line.strip('\n'))
-                result = result + line
-        else:
-            result = stdout.read()
-
-    client.close()
-    return result
-"""
+    print('dockbeat and metricbeat yml files have been copied/configured successfully.')

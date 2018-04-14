@@ -5,7 +5,7 @@ import autoscaler.conf.engine_config as eng
 
 def get_names(services):
     return_list = []
-    services_list = services.split("\n")
+    services_list = services.split('\n')
     for serv in services_list:
         if serv:
             return_list.append(serv.replace("'",""))
