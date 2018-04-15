@@ -82,12 +82,14 @@ def get_cpu_util(service, es, service_type, util_type):
 
     Returns: the dictionary result that contains the current CPU utilization and corresponding threshold
     """
-    result = get_stats(service, es, service_type)
-    result["util"] = float(util["curr_cpu_util"])
+    result = {}
+
+    cpu_stats = get_stats(service, es, service_type)
+    result["util"] = float(cpu_stats["curr_cpu_util"])
     if util_type == "high":
-        result["thres"] = float(util["high_cpu_threshold"])
+        result["thres"] = float(cpu_stats["high_cpu_threshold"])
     else:
-        result["thres"] = float(util["low_cpu_threshold"])
+        result["thres"] = float(cpu_stats["low_cpu_threshold"])
     return result
 
 def get_label(node_name):
@@ -111,6 +113,7 @@ def get_macroservice(micro):
 def get_micro_replicas(micro):
     cmd = "sudo docker service inspect "+micro+" -f '{{ .Spec.Mode.Replicated.Replicas }}'"
     curr_replicas = run_command(cmd)
+    print("CURR MICRO REPLICAS: %s" %str(curr_replicas))
     return curr_replicas
 
 # HK: The function gets the number of replicas for a given specific node at that point
@@ -124,6 +127,7 @@ def get_macro_replicas(base_name):
     for i in range(0, len(arr)):
         if arr[i].__contains__(base_name):
             counter += 1
+    print("CURR MACRO REPLICAS: %s" %str(counter))
     return counter
 
 def get_latest_vm(vm_name):

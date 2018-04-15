@@ -1,31 +1,43 @@
 import time
 import autoscaler.enforcer.execute as execute
 import autoscaler.conf.engine_config as eng
+import autoscaler.conf.config_modifier as modify
 from autoscaler import util
 
 def up_scale(service, es, service_type):
     alpha = float(eng.ALPHA)
     beta = eng.BETA
 
-    curr_info = get_cpu_util(service,es, service_type, "high")
-    curr = curr_info["util"]
-    if curr < (1-alpha):
-        # wait for beta seconds and get utilization again
-        util.progress_bar(beta)
+    curr_info = util.get_cpu_util(service,es, service_type, "high")
+    curr,thres = curr_info["util"], curr_info["thres"]
 
-        curr_info = get_cpu_util(service,es,service_type, "high")
-        curr,thres = curr_info["util"], curr_info["thres"]
-        if curr > thres:
-            thres = thres * (1+alpha)
-            # change threshold of cpu_up_lim of that microservice
-            if service_type == "Micro":
-                modify.update_config_attribute(eng.MICRO_CONFIG, service, "cpu_up_lim", thres)
-            else:
-                modify.update_config_attribute(eng.MACRO_CONFIG, service, "cpu_up_lim", thres)
+    print("In UP_SCALE for service: %s" % service)
+    print("First CURR: %s" % str(curr))
+    print("First THRESHOLD: %s" % str(curr_info["thres"]))
 
-    else:
-        return True
+    if curr >= thres:
+        if curr < (1-alpha):
+            # wait for beta seconds and get utilization again
+            util.progress_bar(beta)
 
+            curr_info = util.get_cpu_util(service,es,service_type, "high")
+            curr,thres = curr_info["util"], curr_info["thres"]
+
+            print("Second CURR: %s" % str(curr))
+            print("Second THRESHOLD: %s" % str(thres))
+
+            if curr > thres:
+
+                print("Threshold is about to change...")
+                thres = thres * (1+alpha)
+                thres = "%.2f " % thres  # Round it off 2 decimal places and make it into string
+                print("NEW Threshold: %s" % thres)
+                # change threshold of cpu_up_lim of that microservice
+                modify.update_config_attribute(service_type, service, "cpu_up_lim", thres)
+        else:
+            return True
+
+    print("returning False...")
     return False
 
 
@@ -34,24 +46,34 @@ def down_scale(service, es, service_type):
     beta = eng.BETA
     min_T = float(eng.MIN_THRES)
 
-    curr_info = get_cpu_util(service,es, service_type, "low")
+    curr_info = util.get_cpu_util(service,es, service_type, "low")
     curr, thres = curr_info["util"], curr_info["thres"]
+
+    print("In Down_SCALE for service: %s" % service)
+    print("First CURR: %s" % str(curr))
+    print("First THRESHOLD: %s" % str(thres))
     if curr >= min_T:
         util.progress_bar(beta)
 
-        curr_info = get_cpu_util(service,es, service_type, "low")
+        curr_info = util.get_cpu_util(service,es, service_type, "low")
         curr, thres = curr_info["util"], curr_info["thres"]
-        if curr < thres:
-            util.progress_bar(beta)
 
+        print("Second CURR: %s" % str(curr))
+        print("Second THRESHOLD: %s" % str(thres))
+
+        if curr < thres:
+
+            print("Threshold is about to change...")
             thres = thres * (1-alpha)
+            thres = "%.2f " % thres  # Round it off 2 decimal places and make it into string
+            print("NEW Threshold: %s" % thres)
             # change threshold of cpu_up_lim of that microservice
-            if service_type == "Micro":
-                modify.update_config_attribute(eng.MICRO_CONFIG, service, "cpu_down_lim", thres)
-            else:
-                modify.update_config_attribute(eng.MACRO_CONFIG, service, "cpu_down_lim", thres)
+            modify.update_config_attribute(service_type, service, "cpu_down_lim", thres)
     else:
         return True
+
+    print("Returing False...")
+    return False
 
 
 def algorithm(micro, macro, es):
@@ -72,8 +94,3 @@ def algorithm(micro, macro, es):
             execute.scale_macroservice(macro, int(macro_config.get(macro, 'down_step')))
     else:
         print("Adaptive Policies rejects scaling decision. Keep Observing...")
-
-
-
-
-

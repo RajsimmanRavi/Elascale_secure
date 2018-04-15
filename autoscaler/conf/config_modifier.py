@@ -21,8 +21,14 @@ def remove_config_sections(f_name, remove_list):
 
     config = util.write_config_file(f_name, "w", config)
 
-def update_config_attribute(f_name, section, attribute, value):
-    config = util.read_config_file(f_name)
+def update_config_attribute(service_type, section, attribute, value):
+    if service_type == "Micro":
+        config = util.read_config_file(eng.MICRO_CONFIG)
+        f_name = eng.MICRO_CONFIG
+    else:
+        config = util.read_config_file(eng.MACRO_CONFIG)
+        f_name = eng.MACRO_CONFIG
+
     config.set(section, attribute, value)
     config = util.write_config_file(f_name, "w", config)
 

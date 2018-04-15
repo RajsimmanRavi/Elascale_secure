@@ -85,8 +85,8 @@ sed -i "s/UI_PASSWORD = \".*\"/UI_PASSWORD = \"$UI_PASSWORD\"/g" $ENGINE_CONFIG
 
 cd $SCRIPTS_DIR
 
-tmux new -d -s manager 'sudo python -m autoscaler.manager.main'
-tmux new -d -s ui 'sudo python -m autoscaler.ui.main'
+tmux new -d -s manager 'sudo python3 -m autoscaler.manager.main'
+tmux new -d -s ui 'sudo python3 -m autoscaler.ui.main'
 
 echo "Deployed Everything. You can view the Elascale UI at: https://$MASTER_IP:8888"
 echo "For more detailed information, you can view the Kibana UI at: https://$ELASTIC_IP:5601"

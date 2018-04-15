@@ -23,8 +23,8 @@ def main():
                 print("Within CPU limit. Nothing to do for service: "+micro+"!\n")
             else:
                 macro_status = util.check_status("Macro", micro, elascale.es)
-                discrete_alg(micro_status["status"], macro_status["status"], micro, macro_status["service"])
-                #adaptive_alg(micro, macro_status["service"], elascale.es)
+                #discrete_alg(micro_status["status"], macro_status["status"], micro, macro_status["service"])
+                adaptive_alg(micro, macro_status["service"], elascale.es)
 
                 # You can use gevent threads too, but found to make negligant impact
                 # Make sure you run gevent.sleep(0) on execute() function when calling util_run_command('scale up/down')

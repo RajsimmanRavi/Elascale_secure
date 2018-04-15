@@ -19,7 +19,7 @@ def scale_microservice(service_name, value):
     min_replica = int(micro_config.get(service_name, 'min_replica'))
 
     # This represents the total number of services 'after' it has been scaled
-    total_replica = int(current_replica)+value
+    total_replica = int(current_replica)+int(value)
 
     if total_replica > max_replica:
         print('### Abort micro scaling for microservice: '+service_name+' due to max replica limit: '+str(max_replica)+'.\n')
@@ -52,7 +52,7 @@ def scale_macroservice(host_name, value):
 
     # This represents the total number of services 'after' it has been scaled
     # 'value' variable tells whether to scale down ( - value) or scale up ( + value)
-    total_replica = current_replica+value
+    total_replica = int(current_replica)+int(value)
 
     if total_replica > max_replica:
         print('### Abort macro scaling for '+host_name+' due to max replica limit: '+str(max_replica)+'.\n')
@@ -66,8 +66,8 @@ def scale_macroservice(host_name, value):
         st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
         if value > 0:
             print("====> Scaling out the macroservice: "+host_name+" by "+str(value)+" at time: " + str(st) +"\n")
-            new_vm_name = add_vm(host_name)  # add
+            new_vm_name = util.add_vm(host_name)  # add
         else:
             #value < 0
             print("====> Scaling in the macroservice: "+host_name+" by -"+str(value)+" at time: " + str(st) +"\n")
-            remove_vm(host_name)  # remove
+            util.remove_vm(host_name)  # remove

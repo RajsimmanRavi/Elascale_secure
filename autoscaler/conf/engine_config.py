@@ -10,7 +10,7 @@ MACRO_CONFIG = CONFIG_PATH + "/macroservices.ini"
 # Frequency of monitoring in seconds;
 MONITORING_INTERVAL = 10
 # List of microservices you want to ignore (eg. monitoring components)
-IGNORE_MICRO = "EK_monitor,beats,cass"
+IGNORE_MICRO = "EK_monitor,beats,cass,sensor"
 # List of macroservices you want to ignore (eg. monitor VM)
 IGNORE_MACRO = "iot-monitor"
 # For monitoring dockbeat and metricbeat stats. We look into last 30 seconds of metric data; the value is an average during 30 seconds
@@ -27,5 +27,6 @@ UI_SELF_CERT = PLATFORM_DIR + "/certs/elascale_ui_certificate.pem"
 UI_SELF_KEY = PLATFORM_DIR + "/certs/elascale_ui_private_key.pem"
 
 ## ADAPTIVE POLICIES CONSTANTS
-ALPHA = 0.3
+ALPHA = 0.1
 BETA = 15
+MIN_THRES = 0.1

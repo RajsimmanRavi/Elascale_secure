@@ -7,10 +7,10 @@ The UI showcases some Kibana dashboards and can be used for configuration purpos
 # Execution
 You can run the application on a tmux/screen session using the following command:
 
-```tmux new -d -s manager 'sudo python -m autoscaler.manager.main'```
+```tmux new -d -s manager 'sudo python3 -m autoscaler.manager.main'```
 
 You can run the UI on a tmux/screen session using the following command:
 
-```tmux new -d -s ui 'sudo python -m autoscaler.ui.main'```
+```tmux new -d -s ui 'sudo python3 -m autoscaler.ui.main'```
 
 Note: Make sure you change your folder to: Elascale_secure (eg. /home/ubuntu/Elascale_secure) 
