@@ -1,14 +1,14 @@
 import os
 import sys
 import json
-import subprocess as sp
 import time
-from datetime import datetime
-from tqdm import tqdm
-from prettytable import PrettyTable
 import configparser
+from tqdm import tqdm
+import subprocess as sp
+from datetime import datetime
+from prettytable import PrettyTable
 import autoscaler.conf.engine_config as eng
-#import paramiko # not needed anymore
+import autoscaler.monitor.beats_stats as stats
 
 def get_vm_info(vm):
     """ Function to fetch vm information. Used for creating another vm with same specs.
@@ -51,6 +51,43 @@ def get_util_info(service, curr_util, config):
     result["high_mem_threshold"] = config.get(service, 'mem_up_lim') # Ex second argument should be: cpu_up_lim
     result["low_mem_threshold"] = config.get(service, 'mem_down_lim') # Ex second argument should be: cpu_low_lim
 
+    return result
+
+def get_stats(service, es, service_type):
+    """ Queries Elasticsearch and provides stats.
+    Args:
+        service: name of the service
+        es: Elasticsearch client
+        service_type: Keyword "micro" or "macro" to mention service_type
+    Returns: the dictionary result from get_util_info()
+    """
+    if service_type == "Micro":
+        config = read_config_file(eng.MICRO_CONFIG)
+        util = stats.get_microservices_utilization(es)
+    else:
+        config = read_config_file(eng.MACRO_CONFIG)
+        util = stats.get_macroservices_utilization(es)
+
+    # Put it in nice format
+    curr_stats = get_util_info(service, util, config)
+    return curr_stats
+
+def get_cpu_util(service, es, service_type, util_type):
+    """  Fetches current CPU utilization of specific micro/macroservice
+    Args:
+        service: name of the service
+        es: Elasticsearch client
+        service_type: Keyword "micro" or "macro" to mention service_type
+        util_type: Keyword "high" or "low" to mention high/low threshold
+
+    Returns: the dictionary result that contains the current CPU utilization and corresponding threshold
+    """
+    result = get_stats(service, es, service_type)
+    result["util"] = float(util["curr_cpu_util"])
+    if util_type == "high":
+        result["thres"] = float(util["high_cpu_threshold"])
+    else:
+        result["thres"] = float(util["low_cpu_threshold"])
     return result
 
 def get_label(node_name):
@@ -120,15 +157,6 @@ def get_latest_vm(vm_name):
                 latest_vm = curr_vms[i]
 
     return latest_vm
-
-"""
-def run_command(command):
-    p = sp.Popen(command, shell=True, stdout=sp.PIPE)
-    output, err = p.communicate()
-
-    output = str(output.strip(), 'utf-8')
-    return output
-"""
 
 def run_command(command):
     try:
@@ -259,6 +287,43 @@ def compute_trajectory(cpu_status, mem_status):
         return "Low"
     else:
         return "Normal"
+
+def check_status(service_type, micro, es):
+    """ Fetches status for a specific micro/macroservice
+
+    Args:
+        service_type: Keyword 'Micro' or 'Macro' to mention micro/macroservice
+        micro: name of microservice
+        es: Elasticsearch client
+
+    Returns:
+        Dictionary of data:
+            result = {
+                "service": name of the macroservice
+                "status": Keyword 'High', 'Normal' or 'Low' mentioning the status
+            }
+    """
+    service = micro
+    if service_type == "Macro":
+        # get the macroservice runnning the service
+        service = get_macroservice(micro)
+
+    data = get_stats(service, es, service_type)
+    pretty_print(service_type, data)
+
+    # Then check whether the macroservice can handle the load to spin another microservice
+    cpu_status = check_threshold(service, data["high_cpu_threshold"], data["low_cpu_threshold"], data["curr_cpu_util"])
+
+    # RR: Some services utilize cpu more than memory, hence autoscaler ignores if both are computed. So, I'm turning this off for now
+    #mem_status = util.check_threshold(service, data["high_mem_threshold"], data["low_mem_threshold"], data["curr_mem_util"])
+    #status = util.compute_trajectory(cpu_status, mem_status)
+
+    status = cpu_status
+    result = {}
+    result["service"] = service
+    result["status"] = status
+
+    return result
 
 def check_threshold(service, config_high_threshold, config_low_threshold, curr_util):
     """ Checks whether Utilization crossed discrete threshold

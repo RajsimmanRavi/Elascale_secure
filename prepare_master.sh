@@ -129,27 +129,10 @@ else
 fi
 
 #*********** Install pip and necessary packages for Autoscaler and UI ***************
-<<<<<<< HEAD
-# This is for Python 2
-#sudo apt-get install -y python-setuptools python-dev build-essential
-#sudo easy_install pip
-
-# I upgraded the code to Python 3, hence installing that
-sudo apt-get -y install python3-pip
-
-sudo pip install --upgrade pip
-
-sudo pip install -r $MANAGER_REQUIREMENTS
-sudo pip install -r $UI_REQUIREMENTS
-
-=======
-echo "---- GETTING PIP PACKAGES ----"
-get_pip_package=`sudo apt-get install -y python-setuptools python-dev build-essential`
-echo "---- INSTALLING PIP PACKAGE ----"
-install_pip=`sudo easy_install pip`
+echo "---- INSTALLING PIP PACKAGES ----"
+get_pip_package=`sudo apt-get -y install python3-pip`
 echo "---- UPGRADING PIP PACKAGE ----"
 upgrade_pip=`sudo pip install --upgrade pip`
 echo "---- INSTALLING AUTOSCALER PACKAGES ----"
 install_autoscaler_packages=`sudo pip install -r $AUTOSCALER_REQUIREMENTS`
->>>>>>> 4f31df6a96a215262698ba1e511ae69fffda0087
 echo "Everything is set. Now, you can start creating the platform for application development"

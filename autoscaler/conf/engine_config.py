@@ -25,3 +25,7 @@ UI_PASSWORD = "savi_elascale"
 NGINX_CERT = PLATFORM_DIR + "/certs/elasticsearch_certificate.pem"
 UI_SELF_CERT = PLATFORM_DIR + "/certs/elascale_ui_certificate.pem"
 UI_SELF_KEY = PLATFORM_DIR + "/certs/elascale_ui_private_key.pem"
+
+## ADAPTIVE POLICIES CONSTANTS
+ALPHA = 0.3
+BETA = 15

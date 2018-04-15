@@ -21,6 +21,11 @@ def remove_config_sections(f_name, remove_list):
 
     config = util.write_config_file(f_name, "w", config)
 
+def update_config_attribute(f_name, section, attribute, value):
+    config = util.read_config_file(f_name)
+    config.set(section, attribute, value)
+    config = util.write_config_file(f_name, "w", config)
+
 def add_config_sections(f_name, add_list):
     #print("Add list: %s" %(str(add_list)))
     config = configparser.ConfigParser()
@@ -77,6 +82,5 @@ def update_services(ignore_list, f_name):
             add_config_sections(f_name, new_services)
 
 def update_config():
-
     update_services(eng.IGNORE_MICRO, eng.MICRO_CONFIG)
     update_services(eng.IGNORE_MACRO, eng.MACRO_CONFIG)
