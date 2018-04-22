@@ -83,9 +83,7 @@ sed -i "s/UI_IP = \".*\"/UI_IP = \"$MASTER_IP\"/g" $ENGINE_CONFIG
 sed -i "s/UI_USERNAME = \".*\"/UI_USERNAME = \"$UI_USERNAME\"/g" $ENGINE_CONFIG
 sed -i "s/UI_PASSWORD = \".*\"/UI_PASSWORD = \"$UI_PASSWORD\"/g" $ENGINE_CONFIG
 
-cd $SCRIPTS_DIR
-
-sudo $SCRIPT_DIR/./start-autoscaler
+sudo $SCRIPTS_DIR/./start-autoscaler
 
 #tmux new -d -s manager 'sudo python3 -m autoscaler.manager.main'
 #tmux new -d -s ui 'sudo python3 -m autoscaler.ui.main'

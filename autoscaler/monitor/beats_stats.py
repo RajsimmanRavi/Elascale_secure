@@ -2,7 +2,17 @@ import autoscaler.conf.engine_config as eng
 
 # Monitoring component of the MAPE-K loop (written by ByungChul Park, modified later by Rajsimman Ravi)
 
-def get_microservices_utilization(es):
+def get_microservices_utilization(es, time_event):
+    # time-event is keyword "Curr" or "Prev" to indicate whether you want current data (between 30s before and now)
+    # or previous data (between 60s before and 30s before) -- useful for bandwidth calc.
+
+    if time_event == "Curr":
+        start_time = "now-30s"
+        end_time = "now"
+    else:
+        start_time = "now-60s"
+        end_time = "now-30s"
+
     res = es.search(index='dockbeat-*', body={
         "query": {
             "bool": {
@@ -22,8 +32,8 @@ def get_microservices_utilization(es):
                     {
                         "range": {
                             "@timestamp": {
-                                "gte": eng.START_TIME,
-                                "lte": "now",
+                                "gte": start_time,
+                                "lte": end_time,
                                 "format": "epoch_millis"
                             }
                         }
@@ -88,7 +98,17 @@ def get_microservices_utilization(es):
     return utilization
 
 
-def get_macroservices_utilization(es):
+def get_macroservices_utilization(es, time_event):
+    # time-event is keyword "Curr" or "Prev" to indicate whether you want current data (between 30s before and now)
+    # or previous data (between 60s before and 30s before) -- useful for bandwidth calc.
+
+    if time_event == "Curr":
+        start_time = "now-30s"
+        end_time = "now"
+    else:
+        start_time = "now-60s"
+        end_time = "now-30s"
+
     res = es.search(index="metricbeat-*", body={
         "query": {
             "bool": {
@@ -108,8 +128,8 @@ def get_macroservices_utilization(es):
                     {
                         "range": {
                             "@timestamp": {
-                                "gte": eng.START_TIME,
-                                "lte": "now",
+                                "gte": start_time,
+                                "lte": end_time,
                                 "format": "epoch_millis"
                             }
                         }

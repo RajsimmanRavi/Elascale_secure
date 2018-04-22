@@ -1,9 +1,7 @@
 #!/bin/bash
-CHECK_AUTOSCALER_UP_CMD="ps -aux | grep autoscaler | grep manager | grep -v sudo | awk '{print $2}'"
-CHECK_UI_UP_CMD="ps -aux | grep autoscaler | grep ui | grep -v sudo | awk '{print $2}'"
 
-EXISTING_AUTOSCALER_MANAGER_PID=`$CHECK_AUTOSCALER_UP_CMD`
-EXISTING_AUTOSCALER_UI_PID=`$CHECK_UI_UP_CMD`
+EXISTING_AUTOSCALER_MANAGER_PID=`ps -aux | grep autoscaler | grep manager | grep -v sudo | awk '{print $2}'`
+EXISTING_AUTOSCALER_UI_PID=`ps -aux | grep autoscaler | grep ui | grep -v sudo | awk '{print $2}'`
 
 cd /home/ubuntu/Elascale_secure 
 
@@ -13,7 +11,7 @@ if [[ -z ${EXISTING_AUTOSCALER_MANAGER_PID} ]]; then
     tmux new -d -s manager 'sudo python3 -m autoscaler.manager.main'
 
     sleep 1
-    EXISTING_AUTOSCALER_MANAGER_PID=`$CHECK_AUTOSCALER_UP_CMD`
+    EXISTING_AUTOSCALER_MANAGER_PID=`ps -aux | grep autoscaler | grep manager | grep -v sudo | awk '{print $2}'`
     echo "Started Autoscaler Manager with PID ${EXISTING_AUTOSCALER_MANAGER_PID}"
 else
     echo "An instance of Autoscaler Manager is already running with PID ${EXISTING_AUTOSCALER_MANAGER_PID}"
@@ -25,7 +23,7 @@ if [[ -z ${EXISTING_AUTOSCALER_UI_PID} ]]; then
     tmux new -d -s ui 'sudo python3 -m autoscaler.ui.main'
 
     sleep 1
-    EXISTING_AUTOSCALER_UI_PID=`$CHECK_UI_UP_CMD`
+    EXISTING_AUTOSCALER_UI_PID=`ps -aux | grep autoscaler | grep ui | grep -v sudo | awk '{print $2}'`
     echo "Started Autoscaler UI with PID ${EXISTING_AUTOSCALER_UI_PID}"
 else
     echo "An instance of Autoscaler UI is already running with PID ${EXISTING_AUTOSCALER_UI_PID}"

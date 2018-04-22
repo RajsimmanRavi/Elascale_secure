@@ -11,4 +11,4 @@ services:
     deploy:
       placement:
         constraints:
-          - node.hostname == iot-swarm-master
+          - node.hostname == iot-rajsimman-h2

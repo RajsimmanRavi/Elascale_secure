@@ -130,9 +130,9 @@ fi
 
 #*********** Install pip and necessary packages for Autoscaler and UI ***************
 echo "---- INSTALLING PIP PACKAGES ----"
-get_pip_package=`sudo apt-get -y install python3-pip`
+sudo apt-get -y install python3-pip
 echo "---- UPGRADING PIP PACKAGE ----"
-upgrade_pip=`sudo pip install --upgrade pip`
+sudo pip3 install --upgrade pip
 echo "---- INSTALLING AUTOSCALER PACKAGES ----"
-install_autoscaler_packages=`sudo pip install -r $AUTOSCALER_REQUIREMENTS`
+sudo pip3 install -r $AUTOSCALER_REQUIREMENTS
 echo "Everything is set. Now, you can start creating the platform for application development"

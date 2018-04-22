@@ -4,3 +4,4 @@ tqdm
 paramiko
 spur
 tornado
+networkx

@@ -53,26 +53,26 @@ def get_util_info(service, curr_util, config):
 
     return result
 
-def get_stats(service, es, service_type):
+def get_stats(service, es, service_type, time_event):
     """ Queries Elasticsearch and provides stats.
     Args:
         service: name of the service
         es: Elasticsearch client
-        service_type: Keyword "micro" or "macro" to mention service_type
+        service_type: Keyword "Micro" or "Macro" to mention service_type
     Returns: the dictionary result from get_util_info()
     """
     if service_type == "Micro":
         config = read_config_file(eng.MICRO_CONFIG)
-        util = stats.get_microservices_utilization(es)
+        util = stats.get_microservices_utilization(es, time_event)
     else:
         config = read_config_file(eng.MACRO_CONFIG)
-        util = stats.get_macroservices_utilization(es)
+        util = stats.get_macroservices_utilization(es, time_event)
 
     # Put it in nice format
     curr_stats = get_util_info(service, util, config)
     return curr_stats
 
-def get_cpu_util(service, es, service_type, util_type):
+def get_cpu_util(service, es, service_type, util_type, time_event):
     """  Fetches current CPU utilization of specific micro/macroservice
     Args:
         service: name of the service
@@ -84,7 +84,7 @@ def get_cpu_util(service, es, service_type, util_type):
     """
     result = {}
 
-    cpu_stats = get_stats(service, es, service_type)
+    cpu_stats = get_stats(service, es, service_type, time_event)
     result["util"] = float(cpu_stats["curr_cpu_util"])
     if util_type == "high":
         result["thres"] = float(cpu_stats["high_cpu_threshold"])
@@ -292,6 +292,23 @@ def compute_trajectory(cpu_status, mem_status):
     else:
         return "Normal"
 
+def check_vm_status(vm, es):
+    """ Fetches status for a given vm
+    Args:
+        vm: name of vm
+        es: Elasticsearch client
+    """
+    curr_data = get_stats(vm, es, "Macro", "Curr")
+    curr_down = float(curr_data["curr_netRx_util"])*8.0
+    prev_data = get_stats(vm, es, "Macro", "Prev")
+    prev_down = float(prev_data["curr_netRx_util"])*8.0
+
+    bw = (curr_down - prev_down)/30.0
+
+    print("Download Bandwidth:%s " % "%.3f bps" %bw)
+
+    pretty_print("Macro", curr_data)
+
 def check_status(service_type, micro, es):
     """ Fetches status for a specific micro/macroservice
 
@@ -312,7 +329,7 @@ def check_status(service_type, micro, es):
         # get the macroservice runnning the service
         service = get_macroservice(micro)
 
-    data = get_stats(service, es, service_type)
+    data = get_stats(service, es, service_type, time_event)
     pretty_print(service_type, data)
 
     # Then check whether the macroservice can handle the load to spin another microservice

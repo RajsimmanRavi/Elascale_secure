@@ -32,6 +32,10 @@ class Elascale:
         self.micro_config = util.read_config_file(eng.MICRO_CONFIG)
         self.macro_config = util.read_config_file(eng.MACRO_CONFIG)
 
-    def set_stats(self):
-        self.micro_util = stats.get_microservices_utilization(self.es)
-        self.macro_util = stats.get_macroservices_utilization(self.es)
+    """
+    def set_stats(self, time_event):
+        # time-event is keyword "Curr" or "Prev" to indicate whether you want current data (between 30s before and now)
+        # or previous data (between 60s before and 30s before) -- useful for bandwidth calc.
+        self.micro_util = stats.get_microservices_utilization(self.es, time_event)
+        self.macro_util = stats.get_macroservices_utilization(self.es, time_event)
+    """
