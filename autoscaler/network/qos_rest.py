@@ -29,13 +29,13 @@ def ovsdb_request(switch_dpid, switch_ip):
 
 # max_rate is the max ceil for the qos
 # max_q_rate is the max ceil for that queue
-def insert_qos(port, switch_dpid, min_rate):
+def insert_qos(port, switch_dpid, max_rate):
 
     #queue_data = '{"port_name": "'+port+'", "type": "linux-htb", "max_rate": "10000000", "queues": [{"max_rate": "900000", "min_rate": "100000"}, {"max_rate": "9000000", "min_rate": "1000000"}]}'
     queue_data = '{"port_name": "'+port+'", '
     queue_data += '"type": "linux-htb", '
-    queue_data += '"max_rate": "10000000", '
-    queue_data += '"queues": [{"min_rate": "'+str(min_rate)+'"}]}'
+    queue_data += '"max_rate": "1000000000", '
+    queue_data += '"queues": [{"max_rate": "'+str(max_rate)+'"}]}'
     #queue_data += '"queues": [{"max_rate": "900000", "min_rate": "100000"}, {"max_rate": "9000000", "min_rate": "1000000"}]}'
 
     queue_url = 'http://'+eng.RYU_CONTROLLER+'/qos/queue/'+switch_dpid
@@ -57,81 +57,88 @@ def insert_qos_rule(ip_addr, port, queue_id, sw_dpid):
     data = requests.post(qos_url, data = qos_rule)
     print(data.text)
 
-def delete_qos_queues():
+def delete_qos(switches):
 
-    queue_url = 'http://'+eng.RYU_CONTROLLER+'/qos/queue/all'
-    data = requests.delete(queue_url).json()
+    for sw in switches:
+        sw_ip =  (list(eng.IP_MAPPER.keys())[list(eng.IP_MAPPER.values()).index(sw)])
+        sw_dpid = net_util.get_dpid(sw_ip)
 
-    for item in data:
-        pprint.pprint(item)
+        queue_url = 'http://'+eng.RYU_CONTROLLER+'/qos/queue/'+str(sw_dpid)
+        data = requests.delete(queue_url).json()
 
-    print("Deleted Queues...preparing for deleting QoS")
-    time.sleep(5)
+        time.sleep(5)
 
-    qos_data = '{"qos_id": "all"}'
-    qos_url = 'http://'+eng.RYU_CONTROLLER+'/qos/rules/all'
+        qos_data = '{"qos_id": "all"}'
+        qos_url = 'http://'+eng.RYU_CONTROLLER+'/qos/rules/all'
 
-    c = pycurl.Curl()
-    c.setopt(pycurl.URL, qos_url)
-    c.setopt(pycurl.CUSTOMREQUEST, "DELETE")
-    c.setopt(pycurl.POSTFIELDS, '%s' % qos_data)
-    c.perform()
-    """
-    for item in data:
-        pprint.pprint(item)
-    """
+        c = pycurl.Curl()
+        c.setopt(pycurl.URL, qos_url)
+        c.setopt(pycurl.CUSTOMREQUEST, "DELETE")
+        c.setopt(pycurl.POSTFIELDS, '%s' % qos_data)
+        c.perform()
 
-def configure_switch(sw, port, dest_ip, min_rate):
+def configure_switch(sw, port, dest_ip, max_rate):
+
     sw_ip =  (list(eng.IP_MAPPER.keys())[list(eng.IP_MAPPER.values()).index(sw)])
-    sw_mac = net_util.get_dpid(sw_ip)
+    sw_dpid = net_util.get_dpid(sw_ip)
 
     print(sw_ip)
-    print(sw_mac)
+    print(sw_dpid)
 
     # First Step
-    ovsdb_request(sw_mac, sw_ip)
-
-    # Second Step
-    port = eng.PORT_MAPPER[sw]
+    ovsdb_request(sw_dpid, sw_ip)
 
     #print("SET OVSDB...waiting...")
     util.progress_bar(5)
 
     # Third Step
-    insert_qos(port, sw_mac, min_rate)
+    insert_qos(port, sw_dpid, max_rate)
 
     # Insert QoS Rule to throttle iperf traffic
-    insert_qos_rule(dest_ip, "5201", 0, sw_mac)
+    insert_qos_rule(dest_ip, "5201", 0, sw_dpid)
 
 
 
-def qos(src_ip, dest_ip, min_rate):
+"""
+For each switch, do the following:
+    1. Setup OVSDB for the switch: curl -X PUT -d '"tcp:{$SWITCH_IP}:6632"' http://ryu_controller/v1.0/conf/switches/{$SWITCH_DPID}/ovsdb_addr
+    2. Find the port connected to the host (Basically hard-coding for now): h1 -> pair_h2_1 -> pair_h3_1 -> pair_h1_1 -> h4
+    3. Add queue to that port:
+    curl -X POST -d \
+    '{"port_name": "{$PORT}", "type": "linux-htb", "max_rate": "10000000", "queues": [{"max_rate": "7000000", "min_rate": "1000000"}]}' \
+    http://ryu_controller/qos/queue/{$SWITCH_DPID}
+"""
+def qos(src_ip, dest_ip, max_rate):
 
-    # Before doing anything, delete old qos and queue rules
-    delete_qos_queues()
+    # Setup graph
+    G = setup_topo.setup_topology()
 
     # First, get the switches in-between 2 hosts
-    path = setup_topo.setup_and_find(src_ip, dest_ip)
+    path = setup_topo.find_path(G, src_ip, dest_ip)
     print(path)
+
+    #switches = path[1:-1]
+    #delete_qos(switches)
     """
-    For each switch, do the following:
-        1. Setup OVSDB for the switch: curl -X PUT -d '"tcp:{$SWITCH_IP}:6632"' http://ryu_controller/v1.0/conf/switches/{$SWITCH_DPID}/ovsdb_addr
-        2. Find the port connected to the host (Basically hard-coding for now): h1 -> pair_h2_1 -> pair_h3_1 -> pair_h1_1 -> h4
-        3. Add queue to that port:
-        curl -X POST -d \
-        '{"port_name": "{$PORT}", "type": "linux-htb", "max_rate": "10000000", "queues": [{"max_rate": "7000000", "min_rate": "1000000"}]}' \
-        http://ryu_controller/qos/queue/{$SWITCH_DPID}
+    for i in range(len(path)):
+        if i != len(path)-1:
+            port = setup_topo.get_port(G, path[i], path[i+1])
+            if "sw" not in path[i]:
+                configure_switch(path[i+1], port, dest_ip, max_rate)
+            if "sw" in path[i+1]:
+                configure_switch(path[i+1], port, dest_ip, max_rate)
     """
 
     for i in range(len(path)):
-        if i != len(path)-1:
-            port = get_port(path(i), path(i+1))
-            if "sw" in path[i]:
-                configure_switch(path(i), port, dest_ip, min_rate)
-            if "sw" in path[i+1]:
-                configure_switch(path(i+1), port, dest_ip, min_rate)
-
-
-
+        if "sw" not in path[i] and i == len(path)-1:
+            port = setup_topo.get_port(G, path[i-1], path[i])
+            configure_switch(path[i-1], port, dest_ip, max_rate)
+        elif "sw" not in path[i] and i == 0:
+            port = setup_topo.get_port(G, path[i], path[i+1])
+            configure_switch(path[i+1], port, dest_ip, max_rate)
+        else:
+            print("Switch to switch mapping... skipping configuration")
+"""
 if __name__=="__main__":
     qos(sys.argv[1], sys.argv[2], sys.argv[3])
+"""

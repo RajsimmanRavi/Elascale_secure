@@ -18,6 +18,14 @@ def calc_bw(prev, curr):
     bw = ((curr - prev)/eng.MONITORING_INTERVAL)
     return bw
 
+def calc_bw_left(prev, curr):
+
+    bw = calc_bw(prev, curr)
+    max_bw = 125000000  #500000000 Bits
+
+    bw_left = max_bw - bw
+    return bw_left
+
 # Reference: https://stackoverflow.com/questions/12523586/python-format-size-application-converting-b-to-kb-mb-gb-tb/37423778
 def bytes_2_human_readable_bits(number_of_bytes):
     if number_of_bytes < 0:

@@ -18,8 +18,8 @@ START_TIME = "now-15s"
 #STARTUP_TIME = "now-30s"
 
 ## UI DEPENDENT CONSTANT VARIABLES
-ELASTIC_IP = "10.6.1.7"
-UI_IP = "10.6.1.6"
+ELASTIC_IP = "10.2.0.34"
+UI_IP = "10.2.0.29"
 UI_PORT = "8888"
 UI_USERNAME = "elascale"
 UI_PASSWORD = "savi_elascale"
@@ -34,9 +34,9 @@ MIN_THRES = 0.1
 
 ## SWITCH TOPOLOGY
 RYU_CONTROLLER = "10.2.1.23:8090"
-SW1_IP = "10.6.1.8"
-SW2_IP = "10.6.1.10"
-SW3_IP = "10.6.1.9"
+SW1_IP = "10.2.0.36"
+SW2_IP = "10.2.0.41"
+SW3_IP = "10.2.0.39"
 H1_IP = "192.168.200.10"
 H2_IP = "192.168.200.11"
 H3_IP = "192.168.200.12"
@@ -44,10 +44,10 @@ H4_IP = "192.168.200.13"
 
 # Mapping of all p0/p1 interfaces (for vxlans going through ovs switches)
 MAC_MAPPER = {
-    "c2:08:8b:5d:6f:74": "h1",
-    "f6:08:21:b0:83:f3": "h2",
-    "7e:2c:36:e8:99:13": "h3",
-    "fe:56:a9:ce:96:a5": "h4"
+    "06:81:62:7a:57:a0": "h1",
+    "a6:d9:2d:6d:df:09": "h2",
+    "de:2a:c4:4c:a4:16": "h3",
+    "e2:3a:b0:74:35:ba": "h4"
 }
 
 IP_MAPPER = {
@@ -58,10 +58,4 @@ IP_MAPPER = {
     SW1_IP: "sw_1",
     SW2_IP: "sw_2",
     SW3_IP: "sw_3"
-}
-
-PORT_MAPPER = {
-    "sw_1" : "pair_h2_1",
-    "sw_2" : "pair_h3_1",
-    "sw_3" : "pair_h1_1",
 }

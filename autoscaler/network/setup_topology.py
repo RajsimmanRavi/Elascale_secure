@@ -69,10 +69,12 @@ def find_inbetween_switches(G, src_ip, dest_ip):
 
     return path_nodes
 
-
-def setup_and_find(src_ip, dest_ip):
-
+def setup_topology():
     G = setup_graph()
+
+    return G
+
+def find_path(G,src_ip, dest_ip):
     path_list = find_inbetween_switches(G,src_ip, dest_ip)
 
     """
