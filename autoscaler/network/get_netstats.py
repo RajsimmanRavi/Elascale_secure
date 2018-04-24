@@ -8,7 +8,7 @@ import autoscaler.util as util
 from collections import defaultdict
 import autoscaler.conf.engine_config as eng
 import autoscaler.network.network_util as net_util
-import autoscaler.network.qos_rest as insert_qos
+import autoscaler.network.qos_rest as rest_qos
 
 def init_port_db():
     db = Base('port_tracker.pdl', save_to_file=False)
@@ -109,12 +109,12 @@ def get_flow_stats(dpid, switch, db):
 
             print("Switch: %s --> Flow: %s to %s ==> Bandwdith: %s " %(switch,src,dst,net_util.bytes_2_human_readable_bits(bw)))
 
-            if bw > (10000000/8):
+            if bw > (100000000/8):
                 print("Uh oh...Throttle time!")
                 src_ip = list(eng.IP_MAPPER.keys())[list(eng.IP_MAPPER.values()).index(src)]
                 dest_ip = list(eng.IP_MAPPER.keys())[list(eng.IP_MAPPER.values()).index(dst)]
-                max_rate = 2000000
-                insert_qos.qos(src_ip, dest_ip, max_rate)
+                max_rate = 40000000
+                rest_qos.qos(src_ip, dest_ip, max_rate)
 
 def main():
 
@@ -123,8 +123,8 @@ def main():
     port_db = init_port_db()
 
     switches = [eng.SW1_IP, eng.SW2_IP, eng.SW3_IP]
+    rest_qos.delete_qos(switches)
 
-    bytes_stats = {}
     while(1):
         for sw in switches:
             dpid = int(net_util.get_dpid(sw),16)

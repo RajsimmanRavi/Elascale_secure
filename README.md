@@ -19,6 +19,15 @@ There has been major improvements since the original prototype (https://github.c
 
 You can deploy Elascale on any OpenStack based infrastructure. You just need to edit the following snippet (located on provision_vm.sh) to your platform. If you have any problems creating VMs, this snippet could be the issue. Make sure the arguments to this command (such as auth-url, sec-groups etc.) work on your platform. 
 
+### Network Monitoring Configuration ### 
+There are a couple of things that need to be configured for proper network monitoring:
+
+* Make sure you build the correct graph in setup_topology.py
+* Make sure the ports are correctly set in the graph
+* Make sure you have the correct MACs and IPs in engine_config.py 
+
+This is not started by default. You can start by running get_netstats.py 
+
 ```
 sudo docker-machine create --driver openstack \
     --openstack-auth-url "xxxx" \

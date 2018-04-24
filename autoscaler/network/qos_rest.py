@@ -60,7 +60,8 @@ def insert_qos_rule(ip_addr, port, queue_id, sw_dpid):
 def delete_qos(switches):
 
     for sw in switches:
-        sw_ip =  (list(eng.IP_MAPPER.keys())[list(eng.IP_MAPPER.values()).index(sw)])
+        #sw_ip =  (list(eng.IP_MAPPER.keys())[list(eng.IP_MAPPER.values()).index(sw)])
+        sw_ip = sw
         sw_dpid = net_util.get_dpid(sw_ip)
 
         queue_url = 'http://'+eng.RYU_CONTROLLER+'/qos/queue/'+str(sw_dpid)
