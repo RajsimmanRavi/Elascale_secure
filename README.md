@@ -6,7 +6,7 @@ All you need is a **m1.medium** flavored VM (based on OpenStack) with **Ubuntu 1
 ![alt text](https://github.com/RajsimmanRavi/Elascale_secure/blob/master/elascale_arch.png)
 
 ## Changes from the previous Elascale version ##
-There has been major improvements since the original prototype (https://github.com/RajsimmanRavi/Elascale_scripts). The following highlights are:
+There has been major improvements since the original prototype (located under old_code folder: Elascale_scripts). The following highlights are:
 
     * Incorporated NGINX for access control and encryption
     * HTTPS-based encrypted channels to prevent eavesdropping/information leakage
@@ -18,15 +18,6 @@ There has been major improvements since the original prototype (https://github.c
 ### Deployment in an OpenStack Infrastructure ###
 
 You can deploy Elascale on any OpenStack based infrastructure. You just need to edit the following snippet (located on provision_vm.sh) to your platform. If you have any problems creating VMs, this snippet could be the issue. Make sure the arguments to this command (such as auth-url, sec-groups etc.) work on your platform. 
-
-### Network Monitoring Configuration ### 
-There are a couple of things that need to be configured for proper network monitoring:
-
-* Make sure you build the correct graph in setup_topology.py
-* Make sure the ports are correctly set in the graph
-* Make sure you have the correct MACs and IPs in engine_config.py 
-
-This is not started by default. You can start by running get_netstats.py 
 
 ```
 sudo docker-machine create --driver openstack \
@@ -41,6 +32,18 @@ sudo docker-machine create --driver openstack \
 In fact, you can deploy on other non-OpenStack based platforms as well, as long it has the docker-machine drivers. 
 
 **Note:** We have not tested on any other platform, aside from SAVI infrastructure (which is based on OpenStack). Just make sure your **vm-name** is prefixed with **iot-** as the autoscaling engine only recognizes those VMs.
+
+### Network Monitoring Configuration ### 
+
+We extended the functionality of our Autoscaler to monitor links within a network and adjust the bandwidth (using SDN QoS policies) automatically. 
+
+There are a couple of things that need to be configured for proper network monitoring:
+    * Make sure to deploy Elascale on ViNO (Virtual Network Overlay). For more information: refer to: https://github.com/RajsimmanRavi/vino_elascale 
+    * Make sure you build the correct graph in setup_topology.py
+    * Make sure the ports are correctly set in the graph (port names)
+    * Make sure you have the correct MACs and IPs in engine_config.py 
+
+**Note:** This is not started by default. You can start by running get_netstats.py 
 
 ### Ports Required ###
 
