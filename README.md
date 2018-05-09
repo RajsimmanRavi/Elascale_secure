@@ -43,7 +43,8 @@ There are a couple of things that need to be configured for proper network monit
     * Make sure the ports are correctly set in the graph (port names)
     * Make sure you have the correct MACs and IPs in engine_config.py 
 
-**Note:** This is not started by default. You can start by running get_netstats.py 
+**Note:** This is not started by default. You can start by running get_netstats.py. Go to autoscaler dir and run the following command:
+    ```sudo python3 -m autoscaler.network.get_netstats.py``` 
 
 ### Ports Required ###
 
