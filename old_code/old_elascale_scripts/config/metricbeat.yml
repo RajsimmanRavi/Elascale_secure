@@ -1,0 +1,23 @@
+#==========================  Modules configuration ============================
+metricbeat.modules:
+#------------------------------- System Module -------------------------------
+- module: system
+  metricsets:
+    - cpu
+    - memory
+    - network
+    - diskio 
+  enabled: true
+  period: 10s
+  processes: ['.*']
+
+name: "iot-swarm-master"
+#----------------------------- Logstash output --------------------------------
+#output.logstash:
+  # The Logstash hosts
+#  hosts: ["10.11.1.17:5044"]
+
+#-------------------------- Elasticsearch output ------------------------------
+output.elasticsearch:
+  hosts: ["10.11.1.20:9200"]
+  index: "metricbeat-%{+yyyy.MM.dd}"

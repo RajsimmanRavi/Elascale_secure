@@ -1,0 +1,25 @@
+version: "3"
+services:
+  dockbeat:
+    image: ingensi/dockbeat
+    deploy:
+      mode: global
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/ubuntu/dockbeat.yml:/etc/dockbeat/dockbeat.yml
+      - /volumes/dockbeat-logs/:/var/logs/dockbeat
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:5.4.1
+    deploy:
+      mode: global
+    volumes:
+      - /proc:/hostfs/proc:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /:/hostfs:ro
+      - /home/ubuntu/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
+    networks:
+      - host
+    environment:
+      - system.hostfs=/hostfs
+networks:
+  host:

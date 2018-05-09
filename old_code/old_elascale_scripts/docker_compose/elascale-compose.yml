@@ -1,0 +1,21 @@
+version: '3.1'
+
+services:
+   v2:
+     image: perplexedgamer/elascale_v2:v2.1
+     volumes:
+       - /home/ubuntu/Elascale/config:/Elascale/conf
+       - /home/ubuntu/Elascale/pass_key:/Elascale/pass_key
+     environment:
+       PYTHONUNBUFFERED :   "1"
+       PKEY_PASSWORD    : /run/secrets/pkey_password
+       PKEY_FILE	    : /run/secrets/pkey_file
+     secrets:
+       - pkey_password
+       - pkey_file
+
+secrets:
+   pkey_password:
+     file: /home/ubuntu/Elascale/pass_key/pass_key_passphrase.txt
+   pkey_file:
+     file: /home/ubuntu/Elascale/pass_key/pass_key
