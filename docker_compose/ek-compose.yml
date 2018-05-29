@@ -18,7 +18,7 @@ services:
         constraints:
           - node.labels.role == monitor
     extra_hosts: 
-      - "elasticsearch:10.2.0.34"
+      - "elasticsearch:10.2.1.16"
     networks:
       net:
   nginx:

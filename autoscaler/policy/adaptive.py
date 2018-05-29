@@ -8,7 +8,7 @@ def up_scale(service, es, service_type):
     alpha = float(eng.ALPHA)
     beta = eng.BETA
 
-    curr_info = util.get_cpu_util(service,es, service_type, "high", "Curr")
+    curr_info = util.get_cpu_util(service,es, service_type, "high")
     curr,thres = curr_info["util"], curr_info["thres"]
 
     print("In UP_SCALE for service: %s" % service)
@@ -20,7 +20,7 @@ def up_scale(service, es, service_type):
             # wait for beta seconds and get utilization again
             util.progress_bar(beta)
 
-            curr_info = util.get_cpu_util(service,es,service_type, "high", "Curr")
+            curr_info = util.get_cpu_util(service,es,service_type, "high")
             curr,thres = curr_info["util"], curr_info["thres"]
 
             print("Second CURR: %s" % str(curr))
@@ -46,7 +46,7 @@ def down_scale(service, es, service_type):
     beta = eng.BETA
     min_T = float(eng.MIN_THRES)
 
-    curr_info = util.get_cpu_util(service,es, service_type, "low", "Curr")
+    curr_info = util.get_cpu_util(service,es, service_type, "low")
     curr, thres = curr_info["util"], curr_info["thres"]
 
     print("In Down_SCALE for service: %s" % service)
@@ -55,7 +55,7 @@ def down_scale(service, es, service_type):
     if curr >= min_T:
         util.progress_bar(beta)
 
-        curr_info = util.get_cpu_util(service,es, service_type, "low", "Curr")
+        curr_info = util.get_cpu_util(service,es, service_type, "low")
         curr, thres = curr_info["util"], curr_info["thres"]
 
         print("Second CURR: %s" % str(curr))

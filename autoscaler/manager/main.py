@@ -13,12 +13,7 @@ def main():
 
     while True:
         elascale.set_config()
-        #elascale.set_stats("Curr")
 
-        for macro in elascale.macro_config.sections():
-            status = util.check_vm_status(macro, elascale.es)
-
-        """
         #threads = []
         for micro in elascale.micro_config.sections():
             micro_status = util.check_status("Micro", micro, elascale.es)
@@ -35,7 +30,7 @@ def main():
                 #threads.append(gevent.spawn(alg, micro_status["status"], macro_status["status"], micro, macro_status["service"]))
 
         #gevent.joinall(threads)
-        """
+
         util.progress_bar(eng.MONITORING_INTERVAL)
 
 if __name__=="__main__":

@@ -53,7 +53,7 @@ def get_util_info(service, curr_util, config):
 
     return result
 
-def get_stats(service, es, service_type, time_event):
+def get_stats(service, es, service_type):
     """ Queries Elasticsearch and provides stats.
     Args:
         service: name of the service
@@ -63,16 +63,16 @@ def get_stats(service, es, service_type, time_event):
     """
     if service_type == "Micro":
         config = read_config_file(eng.MICRO_CONFIG)
-        util = stats.get_microservices_utilization(es, time_event)
+        util = stats.get_microservices_utilization(es)
     else:
         config = read_config_file(eng.MACRO_CONFIG)
-        util = stats.get_macroservices_utilization(es, time_event)
+        util = stats.get_macroservices_utilization(es)
 
     # Put it in nice format
     curr_stats = get_util_info(service, util, config)
     return curr_stats
 
-def get_cpu_util(service, es, service_type, util_type, time_event):
+def get_cpu_util(service, es, service_type, util_type):
     """  Fetches current CPU utilization of specific micro/macroservice
     Args:
         service: name of the service
@@ -84,7 +84,7 @@ def get_cpu_util(service, es, service_type, util_type, time_event):
     """
     result = {}
 
-    cpu_stats = get_stats(service, es, service_type, time_event)
+    cpu_stats = get_stats(service, es, service_type)
     result["util"] = float(cpu_stats["curr_cpu_util"])
     if util_type == "high":
         result["thres"] = float(cpu_stats["high_cpu_threshold"])
@@ -165,7 +165,10 @@ def get_latest_vm(vm_name):
 def run_command(command):
     try:
         process = sp.Popen(command, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT)
-        output, err = process.communicate(timeout=180)
+        try:
+            output, err = process.communicate(timeout=180) # Python3
+        except:
+            output, err = process.communicate() # Python2.7
     except Exception as e:
         print("Caught error while running command...Exiting!")
         print(str(e))
@@ -175,7 +178,10 @@ def run_command(command):
         raise sp.CalledProcessError(process.returncode, command)
         sys.exit(1)
     else:
-        output = str(output.strip(), 'utf-8')
+        try:
+            output = str(output.strip(), 'utf-8') ## Python3
+        except:
+            output = str(output.strip()).encode('utf-8')
 
     return output
 
@@ -298,7 +304,7 @@ def check_vm_status(vm, es):
         vm: name of vm
         es: Elasticsearch client
     """
-    curr_data = get_stats(vm, es, "Macro", "Curr")
+    curr_data = get_stats(vm, es, "Macro")
     curr_down = float(curr_data["curr_netRx_util"])*8.0
     prev_data = get_stats(vm, es, "Macro", "Prev")
     prev_down = float(prev_data["curr_netRx_util"])*8.0
@@ -329,7 +335,7 @@ def check_status(service_type, micro, es):
         # get the macroservice runnning the service
         service = get_macroservice(micro)
 
-    data = get_stats(service, es, service_type, time_event)
+    data = get_stats(service, es, service_type)
     pretty_print(service_type, data)
 
     # Then check whether the macroservice can handle the load to spin another microservice
