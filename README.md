@@ -38,7 +38,9 @@ In fact, you can deploy on other non-OpenStack based platforms as well, as long 
 We extended the functionality of our Autoscaler to monitor links within a network and adjust the bandwidth (using SDN QoS policies) automatically. 
 
 There are a couple of things that need to be configured for proper network monitoring:
-    * Make sure to deploy Elascale on ViNO (Virtual Network Overlay). For more information: refer to: https://github.com/RajsimmanRavi/vino_elascale 
+
+    * Make sure to deploy Elascale on ViNO (Virtual Network Overlay). 
+      * For more information: refer to: https://github.com/RajsimmanRavi/vino_elascale 
     * Make sure you build the correct graph in setup_topology.py
     * Make sure the ports are correctly set in the graph (port names)
     * Make sure you have the correct MACs and IPs in engine_config.py 
