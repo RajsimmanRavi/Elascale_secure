@@ -1,0 +1,14 @@
+elasticsearch
+configparser
+tqdm
+paramiko
+spur
+tornado
+networkx
+pydblite
+prettytable
+pandas==0.20.3
+numpy
+scipy
+python-dateutil==2.1
+nupic

@@ -6,3 +6,7 @@ spur
 tornado
 networkx
 pydblite
+prettytable
+pandas
+numpy
+scipy

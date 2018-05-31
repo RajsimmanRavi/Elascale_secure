@@ -49,13 +49,6 @@ def add_config_section(f_name, new_section):
 
     new_config = util.write_config_file(f_name, "a", config)
 
-def filter_list(services, ignore_list):
-    final_list = []
-    for serv in services:
-        if not (any(substring in serv for substring in ignore_list)):
-            final_list.append(serv)
-    return final_list
-
 def update_services(ignore_list, f_name):
     #print(ignore_list)
     # Make it into a list
@@ -69,7 +62,7 @@ def update_services(ignore_list, f_name):
         services = util.run_command("sudo docker node ls --format '{{.Hostname}}'")
 
     running_services = get_names(services)
-    running_services = filter_list(running_services, ignore_list)
+    running_services = util.filter_list(running_services, ignore_list)
 
     #print("file_services: %s" % str(file_services))
     #print("running_services: %s" % str(running_services))

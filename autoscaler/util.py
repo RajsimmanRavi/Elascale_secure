@@ -103,6 +103,40 @@ def get_label(node_name):
     return_dict[labels.split("=")[0]] = labels.split("=")[1]
     return return_dict
 
+def get_app_stacks():
+    # Fetches all the applications running
+    cmd = "sudo docker stack ls --format '{{ .Name }}'"
+    result = run_command(cmd)
+    # Get only one, if more returned
+    stacks = result.split("\n")
+    return stacks
+
+def get_stack_services(stack):
+    # Fetches all the microservices for a specific application
+    cmd = "sudo docker stack ps "+stack+" --format '{{ .Name }}'"
+    result = run_command(cmd)
+    services = result.split("\n")
+
+    result = []
+
+    for serv in services:
+        name = serv.split(".")[0]
+        result.append(name)
+
+
+    result = list(set(result)) # Removes duplicates
+    result = filter_list(result, eng.IGNORE_MICRO.split(",")) # Filters services that are supposed to be ignored
+
+    return result
+
+def get_stack_nodes(stack):
+    # Fetches all the macroservices/nodes for a specific application
+    cmd = "sudo docker stack ps iot_app --format '{{ .Node }}' | sed '/^\s*$/d' | sort | uniq"
+    result = run_command(cmd)
+    nodes = result.split("\n")
+
+    return nodes
+
 def get_macroservice(micro):
     cmd = "sudo docker service ps "+micro+" --format '{{ .Node }}'"
     result = run_command(cmd)
@@ -373,6 +407,22 @@ def check_threshold(service, config_high_threshold, config_low_threshold, curr_u
         return "Low"
     else:
         return "Normal"
+
+def filter_list(services, ignore_list):
+    """ Removes items in services that are mentioned to be removed (located in ignore_list)
+
+    Args:
+        services: list of running services
+        ignore_list: list of services that are supposed to be ignored (mentioned in engine_config.py)
+
+    Returns:
+        List of filtered running services (can be micro or macro)
+    """
+    final_list = []
+    for serv in services:
+        if not (any(substring in serv for substring in ignore_list)):
+            final_list.append(serv)
+    return final_list
 
 def prepare_for_beats(vm_name):
 

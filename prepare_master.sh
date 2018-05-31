@@ -7,8 +7,11 @@ UNAME_M=`uname -m` #x86_64
 #directory you want to create (if it doesn't exist)
 SCRIPTS_DIR="/home/ubuntu/Elascale_secure"
 
-#Requirements file for install pip packages for Autoscaler Manager and UI
-AUTOSCALER_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/requirements.txt"
+# Requirements file for install pip packages for Autoscaler Manager and UI
+# RR: Not using pip3 as anomaly detection package nupic is available only in python2
+
+# PIP3_AUTOSCALER_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/pip3_requirements.txt" 
+PIP2_AUTOSCALER_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/pip2_requirements.txt"
 
 #Remove the annoying 'sudo: unable to ...' warning 
 sudo sed -i "s/127.0.0.1 .*/127.0.0.1 localhost $HOSTNAME/g" /etc/hosts
@@ -128,11 +131,15 @@ else
 
 fi
 
+# RR: Heirarchical Temporal Memory utilizes python2 only. 
+# Hence, installing packages for Autoscaler and UI using on pip2
+sudo pip2 install -r $PIP2_AUTOSCALER_REQUIREMENTS
+
 #*********** Install pip and necessary packages for Autoscaler and UI ***************
-echo "---- INSTALLING PIP PACKAGES ----"
-sudo apt-get -y install python3-pip
-echo "---- UPGRADING PIP PACKAGE ----"
-sudo pip3 install --upgrade pip
-echo "---- INSTALLING AUTOSCALER PACKAGES ----"
-sudo pip3 install -r $AUTOSCALER_REQUIREMENTS
+#echo "---- INSTALLING PIP PACKAGES ----"
+#sudo apt-get -y install python3-pip
+#echo "---- UPGRADING PIP PACKAGE ----"
+#sudo pip3 install --upgrade pip
+#echo "---- INSTALLING AUTOSCALER PACKAGES ----"
+
 echo "Everything is set. Now, you can start creating the platform for application development"
