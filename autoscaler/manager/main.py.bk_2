@@ -12,6 +12,46 @@ from scipy.ndimage.filters import gaussian_filter
 import numpy as np
 import math
 
+def anomaly_likelihood(scores):
+    mean, stdev = np.mean(scores), np.std(scores)
+
+    try:
+        Q_z = 1
+        for score in scores:
+            z = (score - mean)/std
+            Q = 0.5 * math.erfc(z/1.4142)
+            Q_z = math.log(Q_z) + math.log(Q)
+
+        L_t = 1 - math.exp(Q_z)
+    except:
+        L_t = mean
+        pass
+
+    if math.isnan(L_t):
+        L_t = mean
+
+
+    return L_t
+
+    """
+    try:
+        likelihood = 1
+        for score in scores:
+            cdf = norm.cdf(score, loc=mean, scale=std)
+            smoothed_cdf = 2*gaussian_filter(1-cdf, std)
+            likelihood = likelihood * smoothed_cdf
+
+        final_score = 1 - likelihood
+    except:
+        final_score = 0
+        pass
+
+    if math.isnan(final_score):
+        final_score = 0
+
+    return final_score
+    """
+
 def init_detects(elascale, min_val, max_cpu_val, max_net_val, prob_window):
     services = {}
 
@@ -71,7 +111,7 @@ def check_anomalies(service, es, service_type, detects):
     avg = np.mean([cpu_score, net_score])
     debug = "%s,%s,%s,%s,%s,%s,%s\n" % (str(timestamp), service, cpu_util, net_tx_util, cpu_score, net_score, avg)
 
-    #write_to_file(service, data)
+    write_to_file(service, data)
 
     """
     # This utilizes Relative Entropy
@@ -133,7 +173,9 @@ def main():
                 final_score = detects["final"].handleRecord(np.mean(scores), timestamp)[0]
 
                 write_score = "%s,%s\n" % str(timestamp),final_score
-                #write_to_file("final", write_score)
+
+                with open('debug.txt', 'a+') as file:
+                    file.write(write_score)
 
             """
                 stats = util.get_stats(micro, elascale.es, "Micro")

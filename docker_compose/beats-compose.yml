@@ -4,6 +4,9 @@ services:
     image: docker.elastic.co/beats/metricbeat:5.4.1
     deploy:
       mode: global
+      placement:
+        constraints:
+          - node.labels.role != master
     volumes:
       - /proc:/hostfs/proc:ro
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
@@ -21,6 +24,9 @@ services:
     image: ingensi/dockbeat
     deploy:
       mode: global
+      placement:
+        constraints:
+          - node.labels.role != master
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /home/ubuntu/dockbeat.yml:/etc/dockbeat/dockbeat.yml

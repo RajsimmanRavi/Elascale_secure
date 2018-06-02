@@ -74,7 +74,7 @@ class NumentaDetector():
     Internally to NuPIC "anomalyScore" corresponds to "likelihood_score"
     and "rawScore" corresponds to "anomaly_score". Sorry about that.
     """
-    inputTimestamp = pd.Timestamp(inputTimestamp)
+    #inputTimestamp = pd.Timestamp(inputTimestamp)
     #d = {'value': [inputValue], 'timestamp': [inputTimestamp]}
     d = {'timestamp': inputTimestamp, 'value': inputValue}
     # Send it to Numenta detector and get back the results

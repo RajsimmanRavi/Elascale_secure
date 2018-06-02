@@ -93,7 +93,7 @@ class RelativeEntropyDetector():
 
     anomalyScore = 0.0
     self.util.append(inputData)
-    print(("Current Backlog: %s" % str(self.util)))
+    #print(("Current Backlog: %s" % str(self.util)))
 
     #  This check is for files where self.inputMin == self.input max i.e
     #  all data points are identical and stepSize is 0 e.g

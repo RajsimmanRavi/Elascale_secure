@@ -204,7 +204,7 @@ def run_command(command):
         except:
             output, err = process.communicate() # Python2.7
     except Exception as e:
-        print("Caught error while running command...Exiting!")
+        print("Caught error while running command: %s...Exiting!" % command)
         print(str(e))
         sys.exit(1)
 
