@@ -131,8 +131,10 @@ else
 
 fi
 
+
 # RR: Heirarchical Temporal Memory utilizes python2 only. 
 # Hence, installing packages for Autoscaler and UI using on pip2
+sudo apt-get install -y python-pip
 sudo pip2 install -r $PIP2_AUTOSCALER_REQUIREMENTS
 
 #*********** Install pip and necessary packages for Autoscaler and UI ***************

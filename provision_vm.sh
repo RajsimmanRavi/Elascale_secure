@@ -54,7 +54,7 @@ then
     sudo docker-machine create --driver openstack \
       --openstack-auth-url "$auth_url" \
       --openstack-insecure \
-      --openstack-flavor-name $VM_FLAVOR --openstack-image-name "Ubuntu-14-04" \
+      --openstack-flavor-name $VM_FLAVOR --openstack-image-name "Ubuntu-16-04-OVS-DOCKER" \
       --openstack-tenant-name "$tenant" --openstack-region "$region" \
       --openstack-net-name "$network_name" \
       --openstack-sec-groups "savi-iot" --openstack-ssh-user "ubuntu" \

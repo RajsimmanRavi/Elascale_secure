@@ -71,7 +71,7 @@ def check_anomalies(service, es, service_type, detects):
     avg = np.mean([cpu_score, net_score])
     debug = "%s,%s,%s,%s,%s,%s,%s\n" % (str(timestamp), service, cpu_util, net_tx_util, cpu_score, net_score, avg)
 
-    #write_to_file(service, data)
+    write_to_file(service, debug)
 
     """
     # This utilizes Relative Entropy
@@ -132,8 +132,8 @@ def main():
                 timestamp = pd.Timestamp.now()
                 final_score = detects["final"].handleRecord(np.mean(scores), timestamp)[0]
 
-                write_score = "%s,%s\n" % str(timestamp),final_score
-                #write_to_file("final", write_score)
+                write_score = "%s,%s\n" % (str(timestamp),final_score)
+                write_to_file("final", write_score)
 
             """
                 stats = util.get_stats(micro, elascale.es, "Micro")
