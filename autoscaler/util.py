@@ -107,25 +107,31 @@ def get_app_stacks():
     # Fetches all the applications running
     cmd = "sudo docker stack ls --format '{{ .Name }}'"
     result = run_command(cmd)
-    # Get only one, if more returned
     stacks = result.split("\n")
-    return stacks
+    result = filter_list(stacks, eng.IGNORE_MICRO.split(",")) # Filters services that are supposed to be ignored
+    return result
 
 def get_stack_services(stack):
     # Fetches all the microservices for a specific application
-    cmd = "sudo docker stack ps "+stack+" --format '{{ .Name }}'"
+    cmd = "sudo docker stack ps "+stack+" --format '{{ .Name }},{{ .Node }}'"
     result = run_command(cmd)
     services = result.split("\n")
 
-    result = []
+    result = {}
 
-    for serv in services:
-        name = serv.split(".")[0]
-        result.append(name)
+    for item in services:
+        service = item.split(",")
+        name, node = service[0].split(".")[0], service[1]
 
+        if node not in result:
+            result[node] = []
 
-    result = list(set(result)) # Removes duplicates
-    result = filter_list(result, eng.IGNORE_MICRO.split(",")) # Filters services that are supposed to be ignored
+        result[node].append(name)
+
+    # TODO: You filtered out ignore_micro in get_app_stack.
+    # But, you still have to filter out ignore_macro.
+    # Right now, it works b/c ignore_micro automatically filters those nodes (b/c those micros are tied to those macros)
+    # If someone creates an app, and a micro lands on an ignore_macro, it becomes a problem (corner case, ignoring for now)
 
     return result
 
