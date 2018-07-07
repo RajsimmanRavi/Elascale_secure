@@ -117,23 +117,33 @@ def get_stack_services(stack):
     result = run_command(cmd)
     services = result.split("\n")
 
-    result = {}
+    #result = {}
+    result = []
 
     for item in services:
         service = item.split(",")
+        # Need to split name, as it contains xxx.# inside the name itself
         name, node = service[0].split(".")[0], service[1]
+        result.append(name)
 
+        """
+        # Make sure you initialize using a dict
         if node not in result:
             result[node] = []
 
         result[node].append(name)
+        """
 
+    result = filter_list(result, eng.IGNORE_MICRO.split(",")) # Filters services that are supposed to be ignored
+    print(result)
+    results = list(set(result)) # removes duplicates
+    print(results)
     # TODO: You filtered out ignore_micro in get_app_stack.
     # But, you still have to filter out ignore_macro.
     # Right now, it works b/c ignore_micro automatically filters those nodes (b/c those micros are tied to those macros)
     # If someone creates an app, and a micro lands on an ignore_macro, it becomes a problem (corner case, ignoring for now)
 
-    return result
+    return results
 
 def get_stack_nodes(stack):
     # Fetches all the macroservices/nodes for a specific application
@@ -201,6 +211,22 @@ def get_latest_vm(vm_name):
                 latest_vm = curr_vms[i]
 
     return latest_vm
+
+def filter_list(services, ignore_list):
+    """ Removes items in services that are mentioned to be removed (located in ignore_list)
+
+    Args:
+        services: list of running services
+        ignore_list: list of services that are supposed to be ignored (mentioned in engine_config.py)
+
+    Returns:
+        List of filtered running services (can be micro or macro)
+    """
+    final_list = []
+    for serv in services:
+        if not (any(substring in serv for substring in ignore_list)):
+            final_list.append(serv)
+    return final_list
 
 def run_command(command):
     try:
@@ -288,6 +314,12 @@ def write_config_file(f_name, mode, config_data):
     with open(f_name, mode) as f:
         config_data.write(f)
     return config_data
+
+# Write to file
+def write_to_file(file_name, data):
+
+    with open(file_name, 'a+') as file:
+        file.write(data)
 
 # Progress bar for our Time interval waiting to show how much time to wait
 def progress_bar(time_interval):
@@ -413,22 +445,6 @@ def check_threshold(service, config_high_threshold, config_low_threshold, curr_u
         return "Low"
     else:
         return "Normal"
-
-def filter_list(services, ignore_list):
-    """ Removes items in services that are mentioned to be removed (located in ignore_list)
-
-    Args:
-        services: list of running services
-        ignore_list: list of services that are supposed to be ignored (mentioned in engine_config.py)
-
-    Returns:
-        List of filtered running services (can be micro or macro)
-    """
-    final_list = []
-    for serv in services:
-        if not (any(substring in serv for substring in ignore_list)):
-            final_list.append(serv)
-    return final_list
 
 def prepare_for_beats(vm_name):
 

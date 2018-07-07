@@ -52,6 +52,7 @@ def down_scale(service, es, service_type):
     print("In Down_SCALE for service: %s" % service)
     print("First CURR: %s" % str(curr))
     print("First THRESHOLD: %s" % str(thres))
+
     if curr >= min_T:
         util.progress_bar(beta)
 
@@ -74,6 +75,18 @@ def down_scale(service, es, service_type):
 
     print("Returing False...")
     return False
+
+def algorithm_micro(micro, es):
+    micro_config = util.read_config_file(eng.MICRO_CONFIG)
+
+    if up_scale(micro, es, "Micro"):
+        # Finally, scale up the microservice
+        execute.scale_microservice(micro, int(micro_config.get(micro, 'up_step')))
+
+    elif down_scale(micro, es, "Micro"):
+        execute.scale_microservice(micro, int(micro_config.get(micro, 'down_step')))
+    else:
+        print("Adaptive Policies rejects scaling decision. Keep Observing...")
 
 
 def algorithm(micro, macro, es):

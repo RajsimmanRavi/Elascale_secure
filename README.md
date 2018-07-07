@@ -107,9 +107,7 @@ You can verify if the services are up and running by using the following command
 You can also check whether the application pipeline is working by verifying whether Cassandra database is storing data
 ```
 sudo docker-machine ssh iot-core
-sudo docker ps # Get the container_id of the Cassandra database
-sudo docker exec -it {container_id} cqlsh
-select * from stats.data;
+sudo docker exec -it $(sudo docker ps | grep cassandra | awk -F " " '{print $1}') cqlsh -e "select * from stats.data;"
 ```
 
 ## Elascale Deployment

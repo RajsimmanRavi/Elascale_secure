@@ -114,7 +114,36 @@ class NumentaDetector():
 
     return (finalScore, rawScore)
 
+  """
+  # For Temporal
+  def initialize(self):
+      # Get config params, setting the RDSE resolution
+      rangePadding = abs(self.inputMax - self.inputMin) * 0.2
 
+      modelParams = getScalarMetricWithTimeOfDayAnomalyParams(
+        metricData=[0],
+        minVal=self.inputMin-rangePadding,
+        maxVal=self.inputMax+rangePadding,
+        minResolution=0.001,
+        tmImplementation="tm_cpp"
+      )["modelConfig"]
+
+      self._setupEncoderParams(
+        modelParams["modelParams"]["sensorParams"]["encoders"])
+
+      self.model = ModelFactory.create(modelParams)
+
+      self.model.enableInference({"predictedField": "value"})
+
+      # Initialize the anomaly likelihood object
+      numentaLearningPeriod = int(math.floor(self.probationaryPeriod / 2.0))
+      self.anomalyLikelihood = anomaly_likelihood.AnomalyLikelihood(
+        learningPeriod=numentaLearningPeriod,
+        estimationSamples=self.probationaryPeriod-numentaLearningPeriod,
+        reestimationPeriod=100
+      )
+  """
+  # For spatial
   def initialize(self):
     # Get config params, setting the RDSE resolution
     rangePadding = abs(self.inputMax - self.inputMin) * 0.2
@@ -141,7 +170,6 @@ class NumentaDetector():
         estimationSamples=self.probationaryPeriod-numentaLearningPeriod,
         reestimationPeriod=100
       )
-
 
   def _setupEncoderParams(self, encoderParams):
     # The encoder must expect the NAB-specific datafile headers

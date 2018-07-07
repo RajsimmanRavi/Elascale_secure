@@ -6,6 +6,7 @@ from datetime import datetime
 #import gevent
 from autoscaler.conf import engine_config as eng
 from autoscaler import util
+import pandas as pd
 
 def scale_microservice(service_name, value):
 
@@ -32,6 +33,8 @@ def scale_microservice(service_name, value):
     else:
         st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
         print("----- Scaling microservice: " + service_name + " to: " + str(total_replica) +" at time: " + str(st) + "\n")
+
+
         #gevent.sleep(0)
         result = util.run_command("sudo docker service scale "+service_name+"="+str(total_replica))
         return
