@@ -83,10 +83,10 @@ sed -i "s/UI_IP = \".*\"/UI_IP = \"$MASTER_IP\"/g" $ENGINE_CONFIG
 sed -i "s/UI_USERNAME = \".*\"/UI_USERNAME = \"$UI_USERNAME\"/g" $ENGINE_CONFIG
 sed -i "s/UI_PASSWORD = \".*\"/UI_PASSWORD = \"$UI_PASSWORD\"/g" $ENGINE_CONFIG
 
-sudo $SCRIPTS_DIR/./start-autoscaler
+sudo pip2 install -r $SCRIPTS_DIR/autoscaler/pip2_requirements.txt
 
-#tmux new -d -s manager 'sudo python3 -m autoscaler.manager.main'
-#tmux new -d -s ui 'sudo python3 -m autoscaler.ui.main'
+tmux new -d -s manager 'sudo python2.7 -m autoscaler.manager.main -ad False -p "a"'
+tmux new -d -s ui 'sudo python2.7 -m autoscaler.ui.main'
 
 echo "Deployed Everything. You can view the Elascale UI at: https://$MASTER_IP:8888"
 echo "For more detailed information, you can view the Kibana UI at: https://$ELASTIC_IP:5601"

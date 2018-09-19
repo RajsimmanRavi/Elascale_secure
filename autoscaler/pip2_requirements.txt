@@ -4,6 +4,7 @@ configparser
 tqdm
 paramiko
 spur
+requests
 tornado
 networkx
 pydblite
