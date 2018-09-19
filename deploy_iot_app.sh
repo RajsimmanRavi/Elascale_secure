@@ -1,6 +1,6 @@
 #!/bin/bash
 #This script basically deploys the IoT_app
-#It deploys the following: sensor, Kafka, Zookeeper, edge_processor and Cassandra on appropriate worker nodes
+#It deploys the following: sensor, Kafka, Zookeeper, edge_processor and MySQL on appropriate worker nodes
 #It is deployed as a stack using the iot_app_docker_compose.yml in docker_compose/
 
 #First, we create the swarm worker nodes 
@@ -50,12 +50,12 @@ echo "Updating values inside docker_compose files for IoT App deployment..."
 #KAFKA_ADVERTISED_HOST_NAME
 #KAFKA_ZOOKEEPER_CONNECT
 #KAFKA_IP
-#CASS_IP
+#MYSQL_IP
 
 #First get all the swarm nodes
 NODES=( $(sudo docker-machine ls | awk '{print $1}' | grep -v 'NAME') )
 
-#Loop through each node to find host IP address where Kafka has to be deployed and IP address of Cassandra to be deployed
+#Loop through each node to find host IP address where Kafka has to be deployed and IP address of MySQL to be deployed
 for node in "${NODES[@]}"
 do
     #Inspect the node and get it's label
@@ -79,12 +79,12 @@ do
             #Get the second argument with delimiter '=' (using awk)
             KAFKA_IP=`sudo docker node inspect $node --pretty | grep Address | tr -d " \t\n\r" | awk -F ':' {'print $2'}`
 
-        #CASS_IP is the host with the label_val='core'
+        #MYSQL_IP is the host with the label_val='core'
         elif [[ $label_val == "core" ]]
         then 
  
             #Do the same as above command
-            CASS_IP=`sudo docker node inspect $node --pretty | grep Address | tr -d " \t\n\r" | awk -F ':' {'print $2'}`
+            MYSQL_IP=`sudo docker node inspect $node --pretty | grep Address | tr -d " \t\n\r" | awk -F ':' {'print $2'}`
 
         fi    
     fi
@@ -99,8 +99,8 @@ sed -i "s/KAFKA_ZOOKEEPER_CONNECT: .*/KAFKA_ZOOKEEPER_CONNECT: $KAFKA_IP:2181/g"
 #Change the IP address for KAFKA_IP in iot_compose.yml file
 sed -i "s/KAFKA_IP: .*/KAFKA_IP: $KAFKA_IP/g" $COMPOSE_DIR/iot_app_compose.yml
 
-#Change the IP address for CASS_IP in iot_compose.yml file
-sed -i "s/CASS_IP: .*/CASS_IP: $CASS_IP/g" $COMPOSE_DIR/iot_app_compose.yml
+#Change the IP address for MYSQL_IP in iot_compose.yml file
+sed -i "s/MYSQL_IP: .*/MYSQL_IP: $MYSQL_IP/g" $COMPOSE_DIR/iot_app_compose.yml
 
 #Finally deploy the iot_app as stack
 sudo docker stack deploy -c $COMPOSE_DIR/iot_app_compose.yml iot_app

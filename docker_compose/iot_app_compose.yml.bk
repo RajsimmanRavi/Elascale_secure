@@ -1,47 +1,47 @@
 version: '3.2'
 services:
-  db:
-    image: mysql
+  cass:
+    image: cassandra:latest
+    ports:
+      -  target: 9042
+         published: 9042
+         protocol: tcp
+         mode: host   
+    #ports:
+    #  - "9042:9042"
     deploy:
       placement:
         constraints:
           - node.labels.loc == core
-      restart_policy:
-        condition: on-failure
-        window: 120s
-    command: --default-authentication-plugin=mysql_native_password
-    environment:
-      MYSQL_USER: root
-      MYSQL_ROOT_PASSWORD: elascale
-      MYSQL_DATABASE: wifi
-    ports:
-      -  target: 3306
-         published: 3306
-         protocol: tcp
-         mode: host   
   zookeeper:
     image: wurstmeister/zookeeper
     deploy:
-      placement:
-        constraints:
-          - node.labels.loc == agg-sensor
       restart_policy:
         condition: on-failure
         window: 120s
+      placement:
+        constraints:
+          - node.labels.loc == agg-sensor 
     ports:
       -  target: 2181 
          published: 2181
          protocol: tcp
          mode: host   
+    #ports:
+    #  - "2181:2181"
   kafka:
     image: wurstmeister/kafka
     deploy:
-      placement:
-        constraints:
-          - node.labels.loc == agg-sensor
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 500M
       restart_policy:
         condition: on-failure
         window: 120s
+      placement:
+        constraints:
+          - node.labels.loc == agg-sensor
     depends_on:
       - zookeeper
     ports:
@@ -49,14 +49,16 @@ services:
          published: 9092
          protocol: tcp
          mode: host   
+    #ports:
+    #  - "9092:9092"
     environment:
       KAFKA_ADVERTISED_HOST_NAME: 10.2.1.15
       KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_CREATE_TOPICS: "wifi:1:1"
+      KAFKA_CREATE_TOPICS: "stats:1:1"
       KAFKA_ZOOKEEPER_CONNECT: 10.2.1.15:2181
   sensor:
-    image: perplexedgamer/sensor:v5
-    deploy:  
+    image: perplexedgamer/sensor:v4
+    deploy:
       placement:
         constraints:
           - node.labels.loc == agg-sensor
@@ -64,7 +66,7 @@ services:
       KAFKA_IP: 10.2.1.15
       KAFKA_PORT: 9092
   edge:
-    image: perplexedgamer/edge_processor:v8
+    image: perplexedgamer/edge_processor:v7
     deploy:
       placement:
         constraints:
@@ -74,4 +76,4 @@ services:
         window: 120s
     environment:
       KAFKA_IP: 10.2.1.15
-      MYSQL_IP: 10.2.1.12
+      CASS_IP: 10.2.1.12

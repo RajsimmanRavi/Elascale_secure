@@ -108,7 +108,7 @@ def get_app_stacks():
     cmd = "sudo docker stack ls --format '{{ .Name }}'"
     result = run_command(cmd)
     stacks = result.split("\n")
-    result = filter_list(stacks, eng.IGNORE_MICRO.split(",")) # Filters services that are supposed to be ignored
+    result = filter_list(stacks, eng.IGNORE_APP.split(",")) # Filters services that are supposed to be ignored
     return result
 
 def get_stack_services(stack):
@@ -147,7 +147,7 @@ def get_stack_services(stack):
 
 def get_stack_nodes(stack):
     # Fetches all the macroservices/nodes for a specific application
-    cmd = "sudo docker stack ps iot_app --format '{{ .Node }}' | sed '/^\s*$/d' | sort | uniq"
+    cmd = "sudo docker stack ps "+stack+" --format '{{ .Node }}' | sed '/^\s*$/d' | sort | uniq"
     result = run_command(cmd)
     nodes = result.split("\n")
 

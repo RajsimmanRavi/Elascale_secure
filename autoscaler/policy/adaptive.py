@@ -76,7 +76,7 @@ def down_scale(service, es, service_type):
     print("Returing False...")
     return False
 
-def algorithm_micro(micro, es):
+def adaptive_micro(micro, es):
     micro_config = util.read_config_file(eng.MICRO_CONFIG)
 
     if up_scale(micro, es, "Micro"):
@@ -86,9 +86,21 @@ def algorithm_micro(micro, es):
     elif down_scale(micro, es, "Micro"):
         execute.scale_microservice(micro, int(micro_config.get(micro, 'down_step')))
     else:
-        print("Adaptive Policies rejects scaling decision. Keep Observing...")
+        print("Adaptive Policies rejects scaling decision for microservice: "+micro+". Keep Observing...")
 
+def adaptive_macro(macro, es):
+    macro_config = util.read_config_file(eng.MACRO_CONFIG)
 
+    if up_scale(macro, es, "Macro"):
+        # Finally, scale up the microservice
+        execute.scale_macroservice(macro, int(macro_config.get(macro, 'up_step')))
+
+    elif down_scale(macro, es, "Macro"):
+        execute.scale_macroservice(macro, int(macro_config.get(macro, 'down_step')))
+    else:
+        print("Adaptive Policies rejects scaling decision for macroservice: "+macro+". Keep Observing...")
+
+"""
 def algorithm(micro, macro, es):
 
     micro_config = util.read_config_file(eng.MICRO_CONFIG)
@@ -107,3 +119,4 @@ def algorithm(micro, macro, es):
             execute.scale_macroservice(macro, int(macro_config.get(macro, 'down_step')))
     else:
         print("Adaptive Policies rejects scaling decision. Keep Observing...")
+"""

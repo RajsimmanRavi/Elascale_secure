@@ -9,14 +9,15 @@ MICRO_CONFIG = CONFIG_PATH + "/microservices.ini"
 MACRO_CONFIG = CONFIG_PATH + "/macroservices.ini"
 # Frequency of monitoring in seconds;
 MONITORING_INTERVAL = 10
+# List of apps you want to ignore (eg. monitoring components)
+IGNORE_APP = "EK_monitor,beats"
 # List of microservices you want to ignore (eg. monitoring components)
-#IGNORE_MICRO = "EK_monitor,beats,cass,sensor,kafka,zookeeper"
-IGNORE_MICRO = "EK_monitor,beats"
+IGNORE_MICRO = "sensor,kafka,zookeeper,db"
 # List of macroservices you want to ignore (eg. monitor VM)
 IGNORE_MACRO = "iot-monitor"
 # For monitoring dockbeat and metricbeat stats. We look into last 30 seconds of metric data; the value is an average during 30 seconds
-START_TIME = "now-15s"
-#STARTUP_TIME = "now-30s"
+#START_TIME = "now-15s" # Testing
+STARTUP_TIME = "now-30s"
 
 ## UI DEPENDENT CONSTANT VARIABLES
 ELASTIC_IP = "10.2.1.16"
@@ -33,6 +34,13 @@ UI_SELF_KEY = PLATFORM_DIR + "/certs/elascale_ui_private_key.pem"
 ALPHA = 0.5
 BETA = 5
 MIN_THRES = 0.2
+
+## ANOMALY DETECTION MODEL PARAMETERS
+PROB_WINDOW = 108 # What I had for CNSM and worked fine. Sampling frequency: 6 samples/min (beats data every 10 secs) --> 18 minutes
+MIN_CPU_VAL = 0.0 # Minimum cpu_util value
+MAX_CPU_VAL = 2e2 # Maximum cpu_util value
+MAX_NET_VAL = 1e10 # Maximum Net_util value
+INVESTIGATION_PHASE_LENGTH = 6 # i.e. [0-6]. Hence, 6 consecutive samples shud be non-anomalous to exit inv. period
 
 ## SWITCH TOPOLOGY
 RYU_CONTROLLER = "10.2.1.23:8090"

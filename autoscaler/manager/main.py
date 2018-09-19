@@ -1,182 +1,118 @@
 from autoscaler.manager.elascale import Elascale
 from autoscaler import util
 import autoscaler.conf.engine_config as eng
-#from autoscaler.policy.discrete import algorithm as discrete_alg
-#from autoscaler.policy.adaptive import algorithm as adaptive_alg
-from autoscaler.policy.adaptive import algorithm_micro as adaptive_alg
-
-from autoscaler.anomaly_detection.relative_entropy.relative_entropy_detector import RelativeEntropyDetector
-from autoscaler.anomaly_detection.htm.numenta_detector import NumentaDetector
-from nupic.algorithms import anomaly_likelihood
+from autoscaler.policy.discrete import discrete_micro, discrete_macro
+from autoscaler.policy.adaptive import adaptive_micro, adaptive_macro
 import pandas as pd
 import numpy as np
 import sys
+import argparse
 
-"""
-RR: The code needs to be updated. I worked on getting results for CNSM, hence some hard-coded values.
-RR: Will fix it soon
-"""
-def init_detects(elascale, min_val, max_cpu_val, max_net_val, prob_window, detect_type):
-    services = {}
-
-    for micro in elascale.micro_config.sections():
-
-        if detect_type == "re":
-            # Relative Entropy
-            services[micro,"cpu"] = RelativeEntropyDetector(min_val, max_cpu_val, prob_window)
-            services[micro,"net"] = RelativeEntropyDetector(min_val, max_net_val, prob_window)
-        else:
-            # HTM
-            services[micro,"cpu"] = NumentaDetector(min_val, max_cpu_val, prob_window)
-            services[micro,"cpu"].initialize()
-
-            services[micro,"net"] = NumentaDetector(min_val, max_net_val, prob_window)
-            services[micro,"net"].initialize()
-
-    return services
-
-def check_anomalies(service, es, service_type, detects, detect_type):
-    stats = util.get_stats(service, es, service_type)
-    cpu_util = float(stats['curr_cpu_util'])
-    net_tx_util = float(stats["curr_netTx_util"])
-    #net_rx_util = float(stats["curr_netRx_util"])
-
-    timestamp = pd.Timestamp.now()
-
-    if detect_type == "re":
-        # This utilizes Relative Entropy
-        cpu_score = detects[service,"cpu"].handleRecord(cpu_util)
-        net_score = detects[service,"net"].handleRecord(net_tx_util)
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
     else:
-        # This utilize HTM
-        # It returns tuple (finalscore, raw_score). We care about only rawscore
-        cpu_score = detects[service,"cpu"].handleRecord(cpu_util, timestamp)[0]
-        net_score = detects[service,"net"].handleRecord(net_tx_util, timestamp)[0]
-
-    final = np.max([cpu_score, net_score])
-    debug = "%s,%s,%s,%s,%s,%s\n" % (str(timestamp),cpu_util, net_tx_util, cpu_score, net_score, final)
-    #util.write_to_file("results_spatial/"+service+".csv", debug)
-    util.write_to_file("replicas_results_temporal/"+detect_type+"/"+service+".csv", debug)
-
-    return final
-
-def anomaly_detection(services, es, detects, detect_type):
-    scores = []
-    print("Services for Application Stack: %s " %(str(services)))
-
-    if services:
-        # Anomaly detection
-        for item in services:
-            micro_score = check_anomalies(item, es, "Micro", detects, detect_type)
-            scores.append(micro_score)
-
-        timestamp = pd.Timestamp.now()
-        final_score = np.max(scores)
-        current_replica = util.get_micro_replicas("iot_app_edge")
-        write_score = "%s,%s,%s\n" % (str(timestamp),str(current_replica),final_score)
-        #util.write_to_file("results_spatial/final.csv", write_score)
-        util.write_to_file("replicas_results_temporal/"+detect_type+"/final.csv", write_score)
-
-    return final_score
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def main():
+parser = argparse.ArgumentParser(description="*** Autoscaler Arguments ***")
+parser.add_argument('-ad', '--ad', help='Enable Anomaly Detection (True/False). Defaults to False', type=str2bool, nargs='?', default=False)
+parser.add_argument('-p', '--policy', help='Discrete or Adaptive Policy Enable Anomaly Detection (d/a). Defaults to "d"', type=str, nargs='?', default='d')
+args = parser.parse_args()
 
-    anomaly_scores = []
-
-    # This is the last index of the probationary period.
-    # Remove all ground truth labels that come before it
-    prob_window = 108 # If we evaluate the entire dataset for 2 hours 0.15 X 720 -- What I had for spatial, and trying for temporal
-
-    min_val = 0.0 # Minimum cpu_util value
-    max_cpu_val = 2e2 # Maximum cpu_util value
-    max_net_val = 1e10 # Maximum Net_util value
-    detect_type = sys.argv[1]
-
+def start_process(ad):
     elascale = Elascale()
     elascale.set_elastic_client()
     elascale.set_config()
 
-    detects = init_detects(elascale, min_val, max_cpu_val, max_net_val, prob_window, detect_type)
+    # The first argument (Bool) mentions whether enable anomaly detection or not
+    enable_ad = ad
 
-    counter = 0
-    sample_counter = 0 # This is for how many times
+    if enable_ad == True:
+        print("Entering ad")
+        from autoscaler.anomaly_detection import ad_util
+        anomaly_scores = []
+        detects = ad_util.init_detects(elascale)
+        sample_counter = 0 # This is for how many times in investigation period
+
     while True:
-        if counter == 800:
-            sys.exit(1)
-
         elascale.set_config()
 
         # Get apps currently runnning
         apps = util.get_app_stacks()
-
         for app in apps:
 
             services = util.get_stack_services(app)
-            final_score = anomaly_detection(services, elascale.es, detects, detect_type)
-            #final_score = 0
+            nodes = util.get_stack_nodes(app)
 
-            stats = util.get_stats("iot_app_edge", elascale.es, "Micro")
-            cpu_util = float(stats['curr_cpu_util'])
-            net_tx_util = float(stats["curr_netTx_util"])
-            current_replica = util.get_micro_replicas("iot_app_edge")
+            print("app: %s nodes: %s" %(app,nodes))
 
-            timestamp = pd.Timestamp.now()
-            write_score = "%s,%s,%s,%s\n" % (str(timestamp),str(current_replica),cpu_util, net_tx_util)
-            util.write_to_file("stats/final_with_htm.csv", write_score)
 
-            if (final_score > (1 - 10e-5)):
-                sample_counter = 1
-                if int(current_replica) != 1:
-                    print("replica not 1")
-                    result = util.run_command("sudo docker service scale iot_app_edge="+str(1))
-            else:
-                if 0 < sample_counter <= 6:
-                    print("in suspicion mode")
+            if enable_ad:
+                final_score = ad_util.anomaly_detection(services, elascale.es, detects)
+                current_replica = util.get_micro_replicas("iot_app_edge")
 
-                    if int(current_replica) != 1:
-                        print("replica not 1")
-                        result = util.run_command("sudo docker service scale iot_app_edge="+str(1))
-
-                    sample_counter += 1
+                if (final_score > (1 - 10e-5)):
+                    print("Entered investigation period...")
+                    sample_counter = 1
+                    remove_extra_replicas(current_replica, "iot_app_edge")
                 else:
-                    sample_counter = 0
-
-                    for micro in services:
-                        if micro == "iot_app_edge": # just scale stream processor, nothing else
-                            micro_status = util.check_status("Micro", micro, elascale.es)
-
-                            curr_info = util.get_cpu_util(micro,elascale.es, "Micro", "high")
-                            curr,thres = curr_info["util"], curr_info["thres"]
-
-                            #timestamp = pd.Timestamp.now()
-                            #write_score = "%s,%s,%s\n" % (str(timestamp),str(current_replica),curr)
-                            #util.write_to_file("stats/final.csv", write_score)
-
-                            if micro_status["status"] == "Normal":
-                                print("Within CPU limit. Nothing to do for service: "+micro+"!\n")
-                            else:
-                                #macro_status = util.check_status("Macro", micro, elascale.es)
-                                #discrete_alg(micro_status["status"], macro_status["status"], micro, macro_status["service"])
-                                #adaptive_alg(micro, macro_status["service"], elascale.es)
-                                adaptive_alg(micro,elascale.es) # For evaluating CNSM paper
-
-            """
-            if (final_score < (1 - 10e-5)):
-                for micro in services:
-                    micro_status = util.check_status("Micro", micro, elascale.es)
-
-                    if micro_status["status"] == "Normal":
-                        print("Within CPU limit. Nothing to do for service: "+micro+"!\n")
+                    if 0 < sample_counter <= eng.INVESTIGATION_PHASE_LENGTH:
+                        print("Still in investigation period...")
+                        remove_extra_replicas(current_replica, "iot_app_edge")
+                        sample_counter += 1
                     else:
-                        macro_status = util.check_status("Macro", micro, elascale.es)
-                        #discrete_alg(micro_status["status"], macro_status["status"], micro, macro_status["service"])
-                        adaptive_alg(micro, macro_status["service"], elascale.es)
-            """
+                        print("Exiting investigation period and start scaling procedure...")
+                        sample_counter = 0
+                        scale(services, elascale)
+            else:
+                # No anomaly detection enabled, go straight to scaling policy
+                scale(services, nodes, elascale)
 
         util.progress_bar(eng.MONITORING_INTERVAL)
 
-        counter = counter + 1
+def scale(services, nodes, elascale):
+    for micro in services:
+        if micro == "iot_app_edge":
+            if args.policy == 'd':
+                discrete_micro(micro, elascale.es)
+            else:
+                adaptive_micro(micro, elascale.es)
+    print("nodes: " %(nodes))
+    for macro in nodes:
+        if macro == "iot-edge":
+            if args.policy == 'd':
+                discrete_macro(macro, elascale.es)
+            else:
+                adaptive_macro(macro, elascale.es)
+    """
+    if micro == "iot_app_edge": # just scale stream processor, nothing else
+        micro_status = util.check_status("Micro", micro, elascale.es)
+
+        curr_info = util.get_cpu_util(micro,elascale.es, "Micro", "high")
+        curr,thres = curr_info["util"], curr_info["thres"]
+
+        if micro_status["status"] == "Normal":
+            print("Within CPU limit. Nothing to do for service: "+micro+"!\n")
+        else:
+            #macro_status = util.check_status("Macro", micro, elascale.es)
+            #discrete_alg(micro_status["status"], macro_status["status"], micro, macro_status["service"])
+            #adaptive_alg(micro, macro_status["service"], elascale.es)
+            adaptive_alg(micro,elascale.es) # For evaluating CNSM paper
+    """
+
+def remove_extra_resources(curr_replica, micro):
+    if int(current_replica) != 1:
+        print("replica not 1")
+        result = util.run_command("sudo docker service scale "+micro+"="+str(1))
+
+def main():
+   if args.ad is None:
+       print("Wrong Usage. Please use -h or --help flag for proper arguments")
+   else:
+       start_process(args.ad)
 
 if __name__=="__main__":
     main()
