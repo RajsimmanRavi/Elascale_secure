@@ -1,5 +1,33 @@
 version: '3.2'
 services:
+  sensor:
+    image: perplexedgamer/sensor:latest
+    deploy:  
+      placement:
+        constraints:
+          - node.labels.loc == agg-sensor
+    environment:
+      REST_API_IP: 10.2.1.13
+      REST_API_PORT: 6969
+  rest_api:
+    image: perplexedgamer/rest_api:latest
+    deploy:
+      placement:
+        constraints:
+          - node.labels.loc == edge
+      restart_policy:
+        condition: on-failure
+        window: 120s
+    environment:
+      REST_API_PORT: 6969
+      MYSQL_IP: 10.2.1.12
+    ports:
+      -  target: 6969
+         published: 6969
+         protocol: tcp
+         #mode: host  
+    networks:
+      - web
   db:
     image: mysql
     deploy:
@@ -19,59 +47,7 @@ services:
          published: 3306
          protocol: tcp
          mode: host   
-  zookeeper:
-    image: wurstmeister/zookeeper
-    deploy:
-      placement:
-        constraints:
-          - node.labels.loc == agg-sensor
-      restart_policy:
-        condition: on-failure
-        window: 120s
-    ports:
-      -  target: 2181 
-         published: 2181
-         protocol: tcp
-         mode: host   
-  kafka:
-    image: wurstmeister/kafka
-    deploy:
-      placement:
-        constraints:
-          - node.labels.loc == agg-sensor
-      restart_policy:
-        condition: on-failure
-        window: 120s
-    depends_on:
-      - zookeeper
-    ports:
-      -  target: 9092
-         published: 9092
-         protocol: tcp
-         mode: host   
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: 10.2.1.15
-      KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_CREATE_TOPICS: "wifi:1:1"
-      KAFKA_ZOOKEEPER_CONNECT: 10.2.1.15:2181
-  sensor:
-    image: perplexedgamer/sensor:v5
-    deploy:  
-      placement:
-        constraints:
-          - node.labels.loc == agg-sensor
-    environment:
-      KAFKA_IP: 10.2.1.15
-      KAFKA_PORT: 9092
-  edge:
-    image: perplexedgamer/edge_processor:v8
-    deploy:
-      placement:
-        constraints:
-          - node.labels.loc == edge
-      restart_policy:
-        condition: on-failure
-        window: 120s
-    environment:
-      KAFKA_IP: 10.2.1.15
-      MYSQL_IP: 10.2.1.12
+networks:
+  web:
+    driver: overlay
+

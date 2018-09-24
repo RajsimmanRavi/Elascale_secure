@@ -1,6 +1,6 @@
 #!/bin/bash
 #This script basically deploys the IoT_app
-#It deploys the following: sensor, Kafka, Zookeeper, edge_processor and MySQL on appropriate worker nodes
+#It deploys the following: sensor, rest_api and MySQL on appropriate worker nodes
 #It is deployed as a stack using the iot_app_docker_compose.yml in docker_compose/
 
 #First, we create the swarm worker nodes 
@@ -47,9 +47,7 @@ echo "Updating values inside docker_compose files for IoT App deployment..."
 
 #After provisioning the VMs, we have to edit the apropriate docker_compose files to change values 
 #You need to edit the compose.yml to update the IP addresses for the following:
-#KAFKA_ADVERTISED_HOST_NAME
-#KAFKA_ZOOKEEPER_CONNECT
-#KAFKA_IP
+#REST_API_IP
 #MYSQL_IP
 
 #First get all the swarm nodes
@@ -69,15 +67,15 @@ do
         #Get only the substring that comes after '='. Hence, we get the 'xxx' value from loc=xxx
         label_val=${label#*=}
 
-        #KAFKA_IP is the host with the label_val='agg-sensor'
-        if [[ $label_val == "agg-sensor" ]]
+        #REST_API_IP is the host with the label_val='edge'
+        if [[ $label_val == "edge" ]]
         then
         
             #Get the IP of that node
             #Grep Address from the inspect command
             #Remove any in-between spaces (using tr)
             #Get the second argument with delimiter '=' (using awk)
-            KAFKA_IP=`sudo docker node inspect $node --pretty | grep Address | tr -d " \t\n\r" | awk -F ':' {'print $2'}`
+            REST_API_IP=`sudo docker node inspect $node --pretty | grep Address | tr -d " \t\n\r" | awk -F ':' {'print $2'}`
 
         #MYSQL_IP is the host with the label_val='core'
         elif [[ $label_val == "core" ]]
@@ -90,14 +88,8 @@ do
     fi
 done
 
-#Change the IP address for KAFKA_ADVERTISED_HOST_NAME in iot_compose.yml file
-sed -i "s/KAFKA_ADVERTISED_HOST_NAME: .*/KAFKA_ADVERTISED_HOST_NAME: $KAFKA_IP/g" $COMPOSE_DIR/iot_app_compose.yml
-
-#Change the IP address for KAFKA_ZOOKEEPER_CONNECT in iot_compose.yml file
-sed -i "s/KAFKA_ZOOKEEPER_CONNECT: .*/KAFKA_ZOOKEEPER_CONNECT: $KAFKA_IP:2181/g" $COMPOSE_DIR/iot_app_compose.yml
-
-#Change the IP address for KAFKA_IP in iot_compose.yml file
-sed -i "s/KAFKA_IP: .*/KAFKA_IP: $KAFKA_IP/g" $COMPOSE_DIR/iot_app_compose.yml
+#Change the IP address for REST_API_IP in iot_compose.yml file
+sed -i "s/REST_API_IP: .*/REST_API_IP: $REST_API_IP/g" $COMPOSE_DIR/iot_app_compose.yml
 
 #Change the IP address for MYSQL_IP in iot_compose.yml file
 sed -i "s/MYSQL_IP: .*/MYSQL_IP: $MYSQL_IP/g" $COMPOSE_DIR/iot_app_compose.yml

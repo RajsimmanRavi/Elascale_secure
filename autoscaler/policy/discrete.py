@@ -7,8 +7,8 @@ def up_scale(service, es, service_type):
     curr,thres = curr_info["util"], curr_info["thres"]
 
     print("In UP_SCALE for service: %s" % service)
-    print("First CURR: %s" % str(curr))
-    print("First THRESHOLD: %s" % str(curr_info["thres"]))
+    print("CURR: %s" % str(curr))
+    print("THRESHOLD: %s" % str(curr_info["thres"]))
 
     if curr >= thres:
         return True
@@ -21,8 +21,8 @@ def down_scale(service, es, service_type):
     curr, thres = curr_info["util"], curr_info["thres"]
 
     print("In Down_SCALE for service: %s" % service)
-    print("First CURR: %s" % str(curr))
-    print("First THRESHOLD: %s" % str(thres))
+    print("CURR: %s" % str(curr))
+    print("THRESHOLD: %s" % str(thres))
 
     if curr < thres:
         return True

@@ -49,7 +49,7 @@ def add_config_section(f_name, new_section):
 
     new_config = util.write_config_file(f_name, "a", config)
 
-def update_services(ignore_list, f_name):
+def update_services(ignore_list, f_name, apps=None):
     #print(ignore_list)
     # Make it into a list
     ignore_list = ignore_list.split(',')
@@ -57,12 +57,16 @@ def update_services(ignore_list, f_name):
     file_services = util.read_config_file(f_name).sections()
 
     if f_name == eng.MICRO_CONFIG:
-        services = util.run_command("sudo docker service ls --format '{{.Name}}'")
+        services = []
+        for app in apps:
+            curr_services = util.run_command("sudo docker stack services "+app+" --format '{{.Name}}'")
+            curr_services = get_names(curr_services)
+            services += curr_services
     else:
         services = util.run_command("sudo docker node ls --format '{{.Hostname}}'")
+        services = get_names(services)
 
-    running_services = get_names(services)
-    running_services = util.filter_list(running_services, ignore_list)
+    running_services = util.filter_list(services, ignore_list)
 
     #print("file_services: %s" % str(file_services))
     #print("running_services: %s" % str(running_services))
@@ -78,7 +82,8 @@ def update_services(ignore_list, f_name):
             remove_config_section(f_name, service)
 
 def update_config():
-    update_services(eng.IGNORE_MICRO, eng.MICRO_CONFIG)
+    apps = util.get_app_stacks()
+    update_services(eng.IGNORE_MICRO, eng.MICRO_CONFIG, apps)
     update_services(eng.IGNORE_MACRO, eng.MACRO_CONFIG)
 
 if __name__=="__main__":

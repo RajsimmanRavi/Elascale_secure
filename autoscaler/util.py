@@ -108,41 +108,18 @@ def get_app_stacks():
     cmd = "sudo docker stack ls --format '{{ .Name }}'"
     result = run_command(cmd)
     stacks = result.split("\n")
-    result = filter_list(stacks, eng.IGNORE_APP.split(",")) # Filters services that are supposed to be ignored
-    return result
+    results = filter_list(stacks, eng.IGNORE_APP.split(",")) # Filters app that are supposed to be ignored
+
+    return results
 
 def get_stack_services(stack):
     # Fetches all the microservices for a specific application
-    cmd = "sudo docker stack ps "+stack+" --format '{{ .Name }},{{ .Node }}'"
+    cmd = "sudo docker stack services "+stack+" --format '{{ .Name }}'"
     result = run_command(cmd)
     services = result.split("\n")
+    results = filter_list(services, eng.IGNORE_MICRO.split(",")) # Filters services that are supposed to be ignored
 
-    #result = {}
-    result = []
-
-    for item in services:
-        service = item.split(",")
-        # Need to split name, as it contains xxx.# inside the name itself
-        name, node = service[0].split(".")[0], service[1]
-        result.append(name)
-
-        """
-        # Make sure you initialize using a dict
-        if node not in result:
-            result[node] = []
-
-        result[node].append(name)
-        """
-
-    result = filter_list(result, eng.IGNORE_MICRO.split(",")) # Filters services that are supposed to be ignored
-    print(result)
-    results = list(set(result)) # removes duplicates
-    print(results)
-    # TODO: You filtered out ignore_micro in get_app_stack.
-    # But, you still have to filter out ignore_macro.
-    # Right now, it works b/c ignore_micro automatically filters those nodes (b/c those micros are tied to those macros)
-    # If someone creates an app, and a micro lands on an ignore_macro, it becomes a problem (corner case, ignoring for now)
-
+    print("MONITORING MICROSERVICES: %s" %(str(results)))
     return results
 
 def get_stack_nodes(stack):
@@ -150,8 +127,10 @@ def get_stack_nodes(stack):
     cmd = "sudo docker stack ps "+stack+" --format '{{ .Node }}' | sed '/^\s*$/d' | sort | uniq"
     result = run_command(cmd)
     nodes = result.split("\n")
+    results = filter_list(nodes, eng.IGNORE_MACRO.split(",")) # Filters services that are supposed to be ignored
 
-    return nodes
+    print("MONITORING MACROSERVICES: %s" %(str(results)))
+    return results
 
 def get_macroservice(micro):
     cmd = "sudo docker service ps "+micro+" --format '{{ .Node }}'"
@@ -211,6 +190,28 @@ def get_latest_vm(vm_name):
                 latest_vm = curr_vms[i]
 
     return latest_vm
+
+def str2bool(v):
+    """ Used when checking for arguments passed on the commandline when starting the autoscaler """
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
+def remove_extra_resources(app):
+    """
+       Removes any extra provisioned resources allocated by the autoscaler. This is executed only when anomaly is detected.
+    """
+    services = util.get_stack_services(app)
+    for micro in services:
+
+        current_replica = util.get_micro_replicas(micro)
+
+        if int(current_replica) != 1:
+            print("Micro: %s Number of Replicas: %s" %(micro, str(current_replica)))
+            result = util.run_command("sudo docker service scale "+micro+"="+str(1))
 
 def filter_list(services, ignore_list):
     """ Removes items in services that are mentioned to be removed (located in ignore_list)

@@ -20,7 +20,7 @@ sudo sed -i "s/127.0.0.1 .*/127.0.0.1 localhost $HOSTNAME/g" /etc/hosts
 sudo apt-get update
 
 #Install some prerequisite tools (if needed)
-sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common figlet
 
 #Check if Docker is already installed
 check_docker=`command -v docker`
