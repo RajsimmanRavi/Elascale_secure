@@ -3,23 +3,32 @@ from autoscaler import util
 import autoscaler.conf.engine_config as eng
 from autoscaler.policy.discrete import discrete_micro, discrete_macro
 from autoscaler.policy.adaptive import adaptive_micro, adaptive_macro
-#import pandas as pd
-#import numpy as np
-#import sys
 import argparse
+import logging
+from logging.handlers import RotatingFileHandler
 
-parser = argparse.ArgumentParser(description="*** Autoscaler Arguments ***")
-parser.add_argument('-ad', '--ad', help='Enable Anomaly Detection (True/False). Defaults to False', type=util.str2bool, nargs='?', default=False)
-parser.add_argument('-p', '--policy', help='Discrete or Adaptive Policy Enable Anomaly Detection (d/a). Defaults to "d"', type=str, nargs='?', default='d')
+formatter = logging.Formatter('%(asctime)s,%(message)s',"%Y-%m-%d %H:%M:%S")
+logger = logging.getLogger(__name__)
+handler = RotatingFileHandler(eng.LOGGING_FILE, maxBytes=5*1024*1024, backupCount=10)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+
+parser = argparse.ArgumentParser(description="*** Elascale Autoscaler Arguments ***")
+parser.add_argument('-ad', '--ad', help='Enable Anomaly Detection? (arg: bool). Default: False', type=util.str2bool, nargs='?', default=False)
+parser.add_argument('-macro', '--macro', help='Enable Autoscaling Macroservices? (arg: bool). Default: False', type=util.str2bool, nargs='?', default=False)
+parser.add_argument('-p', '--policy', help='Discrete or Adaptive Policy? (arg: "d"/"a"). Defaults: "d"', type=str, nargs='?', default='d')
 args = parser.parse_args()
 
 def start_process():
+
     elascale = Elascale()
     elascale.set_elastic_client()
     elascale.set_config()
 
     # The first argument (Bool) mentions whether enable anomaly detection or not
     enable_ad = args.ad
+    enable_macro = args.macro
 
     if enable_ad == True:
         print("Anomaly Detection Enabled")
@@ -29,6 +38,7 @@ def start_process():
         sample_counter = 0 # This is for how many times in investigation period
 
     while True:
+        # Update the config based on currently running services
         elascale.set_config()
 
         # Get apps currently runnning
@@ -36,15 +46,15 @@ def start_process():
         print("MONITORING APPS: %s" %(str(apps)))
         for app in apps:
 
+            # Get macro/microservices for that specific application
             services = util.get_stack_services(app)
-            nodes = util.get_stack_nodes(app)
 
-            #print("app: %s nodes: %s" %(app,nodes))
 
+            # If Anomaly detection is enabled
             if enable_ad:
                 final_score = ad_util.anomaly_detection(services, elascale.es, detects)
 
-                if (final_score > (1 - 10e-5)):
+                if (final_score > eng.ANOMALY_THRESHOLD):
                     print("--- Entered investigation period... ---")
                     sample_counter = 1
                     util.remove_extra_replicas(app)
@@ -56,20 +66,30 @@ def start_process():
                     else:
                         print("--- Exiting investigation period and start scaling procedure... ---")
                         sample_counter = 0
-                        scale(services, elascale)
+                        micro_scale(services, elascale)
             else:
-                # Anomaly detection not enabled, go straight to scaling policy
-                scale(services, nodes, elascale)
+                micro_scale(services, elascale)
+                if enable_macro:
+                    nodes = util.get_stack_nodes(app)
+                    macro_scale(nodes, elascale)
+
+        # This is for collecting stats for evaluation
+        curr_info = util.get_cpu_util("iot_app_rest_api", elascale.es, "Micro", "high")
+        curr,thres = curr_info["util"], curr_info["thres"]
+        cpu_stats = "%s,%s" %(str(curr), str(util.get_micro_replicas("iot_app_rest_api")))
+        logger.warning(cpu_stats)
 
         util.progress_bar(eng.MONITORING_INTERVAL)
 
-def scale(services, nodes, elascale):
+def micro_scale(services, elascale):
     for micro in services:
+        #logger.warning("%s" %(str(util.get_micro_replicas(micro))))
         if args.policy == 'd':
             discrete_micro(micro, elascale.es)
         else:
             adaptive_micro(micro, elascale.es)
 
+def macro_scale(nodes, elascale):
     for macro in nodes:
         if args.policy == 'd':
             discrete_macro(macro, elascale.es)

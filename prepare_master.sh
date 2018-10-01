@@ -16,6 +16,9 @@ PIP2_AUTOSCALER_REQUIREMENTS="$SCRIPTS_DIR/autoscaler/pip2_requirements.txt"
 #Remove the annoying 'sudo: unable to ...' warning 
 sudo sed -i "s/127.0.0.1 .*/127.0.0.1 localhost $HOSTNAME/g" /etc/hosts
 
+# Create Log folder
+sudo mkdir -p /var/log/elascale
+
 #Let's update first 
 sudo apt-get update
 

@@ -9,6 +9,7 @@ from datetime import datetime
 from prettytable import PrettyTable
 import autoscaler.conf.engine_config as eng
 import autoscaler.monitor.beats_stats as stats
+import argparse
 
 def get_vm_info(vm):
     """ Function to fetch vm information. Used for creating another vm with same specs.
@@ -77,7 +78,7 @@ def get_cpu_util(service, es, service_type, util_type):
     Args:
         service: name of the service
         es: Elasticsearch client
-        service_type: Keyword "micro" or "macro" to mention service_type
+        service_type: Keyword "Micro" or "Macro" to mention service_type
         util_type: Keyword "high" or "low" to mention high/low threshold
 
     Returns: the dictionary result that contains the current CPU utilization and corresponding threshold
@@ -124,7 +125,8 @@ def get_stack_services(stack):
 
 def get_stack_nodes(stack):
     # Fetches all the macroservices/nodes for a specific application
-    cmd = "sudo docker stack ps "+stack+" --format '{{ .Node }}' | sed '/^\s*$/d' | sort | uniq"
+    cmd = "sudo docker stack ps "+stack+" -f 'desired-state=Running' --format '{{ .Node }}'"
+    #cmd = "sudo docker stack ps "+stack+" --format '{{ .Node }}' | sed '/^\s*$/d' | sort | uniq"
     result = run_command(cmd)
     nodes = result.split("\n")
     results = filter_list(nodes, eng.IGNORE_MACRO.split(",")) # Filters services that are supposed to be ignored

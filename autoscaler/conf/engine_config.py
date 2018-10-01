@@ -1,14 +1,15 @@
-# ELASCALE PLATFORM DEPENDENT CONSTANT VARIABLE S
+##### ELASCALE PLATFORM DEPENDENT CONSTANT VARIABLES ####
 PLATFORM_DIR = "/home/ubuntu/Elascale_secure"
 PLATFORM_CONFIG_DIR = PLATFORM_DIR + "/config"
 PLATFORM_CERTS_DIR = PLATFORM_DIR + "/certs"
+LOGGING_FILE = '/var/log/elascale/elascale.csv'
 
-# AUTOSCALER DEPENDENT CONSTANT VARIABLES
+#### AUTOSCALER DEPENDENT CONSTANT VARIABLES ####
 CONFIG_PATH = PLATFORM_DIR + "/autoscaler/conf"
 MICRO_CONFIG = CONFIG_PATH + "/microservices.ini"
 MACRO_CONFIG = CONFIG_PATH + "/macroservices.ini"
 # Frequency of monitoring in seconds;
-MONITORING_INTERVAL = 10
+MONITORING_INTERVAL = 30
 # List of apps you want to ignore (eg. monitoring components)
 IGNORE_APP = "EK_monitor,beats"
 # List of microservices you want to ignore (eg. monitoring components)
@@ -19,7 +20,7 @@ IGNORE_MACRO = "iot-agg-sensor,iot-core,iot-master,iot-monitor"
 #START_TIME = "now-15s" # Testing
 STARTUP_TIME = "now-30s"
 
-## UI DEPENDENT CONSTANT VARIABLES
+#### UI DEPENDENT CONSTANT VARIABLES ####
 ELASTIC_IP = "10.2.1.16"
 UI_IP = "10.2.1.11"
 UI_PORT = "8888"
@@ -29,20 +30,21 @@ NGINX_CERT = PLATFORM_DIR + "/certs/elasticsearch_certificate.pem"
 UI_SELF_CERT = PLATFORM_DIR + "/certs/elascale_ui_certificate.pem"
 UI_SELF_KEY = PLATFORM_DIR + "/certs/elascale_ui_private_key.pem"
 
-## ADAPTIVE POLICIES CONSTANTS
+#### ADAPTIVE POLICIES CONSTANTS ####
 #ALPHA = 0.1
-ALPHA = 0.5
+ALPHA = 0.3
 BETA = 5
-MIN_THRES = 0.2
+MIN_THRES = 0.1
 
-## ANOMALY DETECTION MODEL PARAMETERS
+#### ANOMALY DETECTION MODEL PARAMETERS ####
 PROB_WINDOW = 108 # What I had for CNSM and worked fine. Sampling frequency: 6 samples/min (beats data every 10 secs) --> 18 minutes
 MIN_CPU_VAL = 0.0 # Minimum cpu_util value
 MAX_CPU_VAL = 2e2 # Maximum cpu_util value
 MAX_NET_VAL = 1e10 # Maximum Net_util value
 INVESTIGATION_PHASE_LENGTH = 6 # i.e. [0-6]. Hence, 6 consecutive samples shud be non-anomalous to exit inv. period
+ANOMALY_THRESHOLD =  1 - 10e-5 # Anomaly threshold
 
-## SWITCH TOPOLOGY
+#### SWITCH TOPOLOGY #### [------ THESE HAVE TO BE MANUALLY UPDATED -------]
 RYU_CONTROLLER = "10.2.1.23:8090"
 SW1_IP = "10.2.0.36"
 SW2_IP = "10.2.0.41"

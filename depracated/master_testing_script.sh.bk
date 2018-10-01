@@ -1,0 +1,61 @@
+#!/bin/bash
+
+STATS_NAME="stats.csv"
+REPLICAS_NAME="replicas.csv"
+ELASCALE_NAME="elascale.csv"
+AB_RESULTS_NAME="ab_results.csv"
+ELASCALE_LOG="/var/log/elascale/elascale.csv"
+COMPOSE_FILE="/home/ubuntu/Elascale_secure/docker_compose/iot_app_compose.yml"
+PERIOD=1200
+
+sudo docker stack rm iot_app
+
+sleep 5s
+
+sudo docker stack deploy -c $COMPOSE_FILE iot_app
+
+# Waiting it to be stabilized (REST API takes a while)
+echo "Waiting for application to be stabilized..."
+sleep 180s
+
+# Remove old Autoscaler log file
+sudo rm $ELASCALE_LOG
+
+# Go to the Elascale_secure folder to start autoscaler
+cd /home/ubuntu/Elascale_secure
+
+# Start Elascale Autoscaler on tmux session
+tmux new -d -s manager 'sudo python2.7 -m autoscaler.manager.main -ad False -p "d"'
+
+# Go to the tests folder
+cd /home/ubuntu/Elascale_secure/tests
+
+# Monitor the replicas on background
+echo "Start Monitoring replicas..."
+sudo ./monitor_replicas.sh $REPLICAS_NAME $PERIOD &
+
+# Start Apache Bench Testing
+#echo "Start Apache bech tests..."
+#ssh -o "StrictHostKeyChecking no" -i /home/ubuntu/id_rsa ubuntu@10.2.1.23 ~/./benchmark_rest_api.sh $AB_RESULTS_NAME $PERIOD & 
+
+#sleep 2s
+
+# Start the test scaling
+echo "Start Scaling tests..."
+sudo ./test_scaling.sh
+
+# Copy the stats files here
+echo "Copy stats file here"
+sudo ./copy_files.sh $STATS_NAME
+
+# Copy AB results back here
+#scp -i /home/ubuntu/id_rsa ubuntu@10.2.1.23:/home/ubuntu/$AB_RESULTS_NAME .
+
+# Copy CPU and replica stats from Elascale Autoscaler
+sudo cp $ELASCALE_LOG $ELASCALE_NAME
+
+sudo docker stack rm iot_app
+
+PID=`ps -aux | grep autoscaler | grep tmux |  awk '{print $2}'`
+
+sudo kill -9 $PID                                                                                                                  
