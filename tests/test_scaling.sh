@@ -29,15 +29,22 @@ simple(){
 spatial(){
   
   echo "Starting Yo Yo scaling test..."
-  for i in `seq 1 3`;
+  for i in `seq 1 5`;
   do
+      
+      NOW=$(date +"%Y-%m-%d %H:%M:%S")
+      echo "Starting to scale high now: $NOW"
+      
       sudo docker service scale iot_app_sensor=12
   
-      sleep 300s
+      sleep 30s
   
+      NOW=$(date +"%Y-%m-%d %H:%M:%S")
+      echo "Starting to scale back now: $NOW"
+      
       sudo docker service scale iot_app_sensor=1
   
-      sleep 100s
+      sleep 30s
   
   done    
   echo "Finished testing Yo Yo..."

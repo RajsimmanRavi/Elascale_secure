@@ -33,7 +33,7 @@ function start_autoscaler () {
     # Start Elascale Autoscaler on tmux session
     tmux new -d -s manager "sudo python2.7 -m autoscaler.manager.main -ad False -p '$1'"
 
-    sleep 10s
+    sleep 5s
 }
 
 function start_tests {
@@ -42,7 +42,13 @@ function start_tests {
     
     # Monitor the replicas on background
     echo "Start Monitoring replicas..."
-    sudo ./monitor_stats.sh $1 $PERIOD replicas & 
+    sudo ./monitor_stats.sh $1 $PERIOD replicas &
+    
+    echo "Start Monitoring CPU Stats"
+    sudo ./monitor_stats.sh $2 $PERIOD process_cpu &
+    
+    echo "Start Monitoring Host CPU Stats"
+    sudo ./monitor_stats.sh $3 $PERIOD host_cpu &
     
     # Start the test scaling
     echo "Start Scaling tests..."
@@ -50,32 +56,28 @@ function start_tests {
     
     # Copy the stats files here
     echo "Copy stats file here"
-    sudo ./copy_files.sh $2
+    sudo ./copy_files.sh $4
     
     # Copy CPU and replica stats from Elascale Autoscaler
-    sudo cp $ELASCALE_LOG $3
+    sudo cp $ELASCALE_LOG $5
 }
 
-rm_autoscaler
-start_autoscaler a
-cd /home/ubuntu/Elascale_secure/tests
-start_tests "replicas_5.csv" "stats_5.csv" "elascale_5.csv"
-rm_autoscaler
 
 
-#for i in {1..3}
-#do
-#    rm_app 
-#    rm_autoscaler
-#    deploy_app
-#    if [ "$i" -eq 2 ];then
-#        start_autoscaler d
-#    elif [ "$i" -eq 3 ];then
-#        start_autoscaler a
-#    fi
-#    start_tests "replicas_$i.csv" "stats_$i.csv" "elascale_$i.csv"
-#    rm_app
-#    rm_autoscaler
-#
-#    sleep 120s
-#done
+
+for i in {1..2}
+do
+    rm_app 
+    rm_autoscaler
+    deploy_app
+    if [ "$i" -eq 1 ];then
+        start_autoscaler d
+    elif [ "$i" -eq 2 ];then
+        start_autoscaler a
+    fi
+    start_tests "replicas_$i.csv" "process_cpu_stats_$i.csv" "host_cpu_stats_$i.csv" "stats_$i.csv" "elascale_$i.csv"
+    rm_app
+    rm_autoscaler
+
+    sleep 120s
+done

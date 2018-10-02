@@ -7,7 +7,7 @@ import argparse
 import logging
 from logging.handlers import RotatingFileHandler
 
-formatter = logging.Formatter('%(asctime)s,%(message)s',"%Y-%m-%d %H:%M:%S")
+formatter = logging.Formatter('%(asctime)s,%(message)s',"%Y-%m-%d %H:%M")
 logger = logging.getLogger(__name__)
 handler = RotatingFileHandler(eng.LOGGING_FILE, maxBytes=5*1024*1024, backupCount=10)
 handler.setFormatter(formatter)

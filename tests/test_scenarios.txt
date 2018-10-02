@@ -1,0 +1,10 @@
+# For comparing performance during heavy workload
+Used simple discrete policy with 0.65 and 0.2 max/min
+20 mins (1200) of heavy sensors (12) -> simple test case in test_scaling.sh
+
+
+# For comparing discrete and adaptive policies
+Tested Yo Yo with 30 sec flip/flop sensors for 5 mins
+Set adaptive params -> Alpha: 0.25 Beta: 0.15 
+Set max for both ast: 0.65 and min at: 0.2
+Monitoring interval for both policies: 10 secs

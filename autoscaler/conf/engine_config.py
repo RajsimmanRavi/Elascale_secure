@@ -9,7 +9,7 @@ CONFIG_PATH = PLATFORM_DIR + "/autoscaler/conf"
 MICRO_CONFIG = CONFIG_PATH + "/microservices.ini"
 MACRO_CONFIG = CONFIG_PATH + "/macroservices.ini"
 # Frequency of monitoring in seconds;
-MONITORING_INTERVAL = 30
+MONITORING_INTERVAL = 10
 # List of apps you want to ignore (eg. monitoring components)
 IGNORE_APP = "EK_monitor,beats"
 # List of microservices you want to ignore (eg. monitoring components)
@@ -32,9 +32,9 @@ UI_SELF_KEY = PLATFORM_DIR + "/certs/elascale_ui_private_key.pem"
 
 #### ADAPTIVE POLICIES CONSTANTS ####
 #ALPHA = 0.1
-ALPHA = 0.3
+ALPHA = 0.25
 BETA = 5
-MIN_THRES = 0.1
+MIN_THRES = 0.15
 
 #### ANOMALY DETECTION MODEL PARAMETERS ####
 PROB_WINDOW = 108 # What I had for CNSM and worked fine. Sampling frequency: 6 samples/min (beats data every 10 secs) --> 18 minutes
