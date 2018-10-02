@@ -3,7 +3,7 @@ Elascale is an autoscaling solution for both microservices and VMs on cloud envi
 
 All you need is a **m1.medium** flavored VM (based on OpenStack) with **Ubuntu 16-04** image. It may require Ubuntu 14-04 for other nodes (for later deployment).
 
-![alt text](https://github.com/RajsimmanRavi/Elascale_secure/blob/master/elascale_arch.png)
+![alt text](https://github.com/RajsimmanRavi/Elascale_secure/blob/master/elascale.png)
 
 ## Changes from the previous Elascale version ##
 There has been major improvements since the original prototype (located under old_code folder: Elascale_scripts). The following highlights are:
@@ -55,14 +55,16 @@ The following ports need to be opened in the security-group for Elascale to be w
 | IP Protocol   | From Port  | To Port  |  Description     |
 | ------------- |:----------:|:--------:| ----------------:|
 | tcp           |     22     |    22    |   SSH            |
-| tcp           |     2376   |    2377  |   Docker Daemon  |
-| tcp           |     9200   |    9200  |   Elasticsearch  |
-| tcp           |     5601   |    5601  |   Kibana         |
-| tcp           |     2181   |    2181  |   Zookeeper      |
-| tcp           |     9092   |    9092  |   Kafka          |
-| tcp           |     9042   |    9042  |   Cassandra      |
-| tcp           |     8888   |    8888  |   Elascale UI    |
+| tcp           |     80     |    80    |   HTTP           |
 | tcp           |     443    |    443   |   HTTPS          |
+| tcp           |     2376   |    2377  |   Docker Daemon  |
+| tcp           |     3306   |    3306  |   MySQL          |
+| tcp           |     5601   |    5601  |   Kibana         |
+| tcp           |     6633   |    6633  |   OpenFlow       |
+| tcp           |     6969   |    6969  |   REST API       |
+| tcp           |     8479   |    8479  |   VXLAN          |
+| tcp           |     8888   |    8888  |   Elascale UI    |
+| tcp           |     9200   |    9200  |   Elasticsearch  |
 
 ## Execute Installation Script
 
