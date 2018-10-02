@@ -5,13 +5,8 @@ All you need is a **m1.medium** flavored VM (based on OpenStack) with **Ubuntu 1
 
 ![alt text](https://github.com/RajsimmanRavi/Elascale_secure/blob/master/elascale.png)
 
-## Changes from the previous Elascale version ##
-There has been major improvements since the original prototype (located under old_code folder: Elascale_scripts). The following highlights are:
-
-    * Incorporated NGINX for access control and encryption
-    * HTTPS-based encrypted channels to prevent eavesdropping/information leakage
-    * Basic authentication for Elascale UI and Kibana
-    * XSRF protection for Elascale UI 
+## Updates ##
+Incorporated Heirarchical Temporal Memory for online Anomaly Detection purposes (https://github.com/numenta/NAB). (More info later).
 
 ## Steps for deployment ##
 
