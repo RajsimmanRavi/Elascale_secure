@@ -139,4 +139,4 @@ You can remove Elascale and all of it's components (eg. monitor node, beats, Ela
 
 ## Contact
 
-If you have any questions or comments, please email me at: rajsimmanr@savinetwork.ca
+If you have any questions or comments, please email me at: rajsimmanr@gmail.com
