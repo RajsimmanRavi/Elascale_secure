@@ -21,8 +21,8 @@ IGNORE_MACRO = "iot-agg-sensor,iot-core,iot-master,iot-monitor"
 STARTUP_TIME = "now-30s"
 
 #### UI DEPENDENT CONSTANT VARIABLES ####
-ELASTIC_IP = "10.2.1.16"
-UI_IP = "10.2.1.11"
+ELASTIC_IP = "10.2.1.18"
+UI_IP = "10.2.1.15"
 UI_PORT = "8888"
 UI_USERNAME = "elascale"
 UI_PASSWORD = "savi_elascale"

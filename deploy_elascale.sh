@@ -85,7 +85,9 @@ sed -i "s/UI_PASSWORD = \".*\"/UI_PASSWORD = \"$UI_PASSWORD\"/g" $ENGINE_CONFIG
 
 sudo pip2 install -r $SCRIPTS_DIR/autoscaler/pip2_requirements.txt
 
-tmux new -d -s manager 'sudo python2.7 -m autoscaler.manager.main -ad False -p "a"'
+cd $SCRIPTS_DIR
+
+tmux new -d -s manager 'sudo python2.7 -m autoscaler.manager.main -ad False -p "d"'
 tmux new -d -s ui 'sudo python2.7 -m autoscaler.ui.main'
 
 echo "Deployed Everything. You can view the Elascale UI at: https://$MASTER_IP:8888"

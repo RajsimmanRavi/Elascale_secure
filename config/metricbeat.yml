@@ -11,7 +11,7 @@ metricbeat.modules:
   period: 10s
   processes: ['.*']
 
-name: "iot-master"
+name: "iot-rajsimman-h1"
 #----------------------------- Logstash output --------------------------------
 #output.logstash:
   # The Logstash hosts
