@@ -10,34 +10,54 @@
 #label_key basically tells how to label the swarm node. It can be either be 'loc' or 'role'
 #We provide these values to provision_vm.sh $1 -> vm_name $2 -> USERNAME $3 -> PASSWORD $4 -> label_key and $5 -> label_value
 
-HOSTNAMES=("iot-core" "iot-edge" "iot-agg-sensor")
+# Deploy nodes with these hostnames (if not created)
 SCRIPTS_DIR="/home/ubuntu/Elascale_secure"
 COMPOSE_DIR="$SCRIPTS_DIR/docker_compose"
 
-# Read Password for provisioning the VM
-echo -n Enter SAVI username: 
-read username
+CHECK_SENSOR=`$SCRIPTS_DIR/./get_node_role.sh agg-sensor`
+CHECK_EDGE=`$SCRIPTS_DIR/./get_node_role.sh edge`
+CHECK_CORE=`$SCRIPTS_DIR/./get_node_role.sh core`
 
-# Read Password for provisioning the VM
-echo -n Password for user $username: 
-read -s password
+if [  -z "$CHECK_SENSOR" ] || [ -z "$CHECK_EDGE" ] || [ -z "$CHECK_CORE" ]; then
+    echo "One or more Application nodes not deployed yet. Beginnning deployment..."
 
-label_key="loc"
+    # Read Password for provisioning the VM
+    echo -n Enter SAVI username: 
+    read username
+    
+    # Read Password for provisioning the VM
+    echo -n Password for user $username: 
+    read -s password
 
-for host in "${HOSTNAMES[@]}"
-do
-    label_value=`echo "${host#*-}"`
- 
-    check_node=`sudo docker node ls | grep "$host"`
+else
 
-    # Check if node exists before provisioning 
-    if [[ -z $check_node ]];then
-        echo "Node does not exist. Start provisioning..."
-        sudo $SCRIPTS_DIR/./provision_vm.sh $host $username $password $label_key $label_value
-    else
-       echo "Node exists!"
-    fi 
-done
+   echo "All Nodes required are deployed"
+
+fi
+  
+if [ -z "$CHECK_SENSOR" ]; then
+    sudo $SCRIPTS_DIR/./provision_vm.sh "iot-agg-sensor" $username $password "loc" "agg-sensor"
+fi
+
+if [ -z "$CHECK_EDGE" ]; then
+    sudo $SCRIPTS_DIR/./provision_vm.sh "iot-edge" $username $password "loc" "edge"
+fi
+
+if [ -z "$CHECK_CORE" ]; then
+    sudo $SCRIPTS_DIR/./provision_vm.sh "iot-core" $username $password "loc" "core"
+fi
+
+#You need to edit the compose.yml to update the IP addresses for the following:
+#REST_API_IP (EDGE_IP)
+#MYSQL_IP (CORE_IP)
+
+EDGE_NODE=`$SCRIPTS_DIR/./get_node_role.sh edge`
+EDGE_IP="$(cut -d':' -f2 <<<"$EDGE_NODE")"
+echo "EDGE IP: $EDGE_IP"
+
+CORE_NODE=`$SCRIPTS_DIR/./get_node_role.sh core`
+CORE_IP="$(cut -d':' -f2 <<<"$CORE_NODE")"
+echo "CORE IP: $CORE_IP"
 
 echo "Created all the worker nodes needed for IoT App deployment. Preparing for configuration..."
 
@@ -46,53 +66,12 @@ $SCRIPTS_DIR/./sleep_bar.sh 10
 echo "Updating values inside docker_compose files for IoT App deployment..."
 
 #After provisioning the VMs, we have to edit the apropriate docker_compose files to change values 
-#You need to edit the compose.yml to update the IP addresses for the following:
-#REST_API_IP
-#MYSQL_IP
-
-#First get all the swarm nodes
-NODES=( $(sudo docker-machine ls | awk '{print $1}' | grep -v 'NAME') )
-
-#Loop through each node to find host IP address where Kafka has to be deployed and IP address of MySQL to be deployed
-for node in "${NODES[@]}"
-do
-    #Inspect the node and get it's label
-    #After grep, the output is '- loc=xxx'. In order to remove '- ', I use awk
-    label=`sudo docker node inspect $node --pretty | grep "loc=" | awk '{print $2}'` 
-    
-    #Check if 'loc' is in that variable
-    if [[ $label == "loc"* ]]
-    then
-        
-        #Get only the substring that comes after '='. Hence, we get the 'xxx' value from loc=xxx
-        label_val=${label#*=}
-
-        #REST_API_IP is the host with the label_val='edge'
-        if [[ $label_val == "edge" ]]
-        then
-        
-            #Get the IP of that node
-            #Grep Address from the inspect command
-            #Remove any in-between spaces (using tr)
-            #Get the second argument with delimiter '=' (using awk)
-            REST_API_IP=`sudo docker node inspect $node --pretty | grep Address | tr -d " \t\n\r" | awk -F ':' {'print $2'}`
-
-        #MYSQL_IP is the host with the label_val='core'
-        elif [[ $label_val == "core" ]]
-        then 
- 
-            #Do the same as above command
-            MYSQL_IP=`sudo docker node inspect $node --pretty | grep Address | tr -d " \t\n\r" | awk -F ':' {'print $2'}`
-
-        fi    
-    fi
-done
 
 #Change the IP address for REST_API_IP in iot_compose.yml file
-sed -i "s/REST_API_IP: .*/REST_API_IP: $REST_API_IP/g" $COMPOSE_DIR/iot_app_compose.yml
+sed -i "s/REST_API_IP: .*/REST_API_IP: $EDGE_IP/g" $COMPOSE_DIR/iot_app_compose.yml
 
 #Change the IP address for MYSQL_IP in iot_compose.yml file
-sed -i "s/MYSQL_IP: .*/MYSQL_IP: $MYSQL_IP/g" $COMPOSE_DIR/iot_app_compose.yml
+sed -i "s/MYSQL_IP: .*/MYSQL_IP: $CORE_IP/g" $COMPOSE_DIR/iot_app_compose.yml
 
 #Finally deploy the iot_app as stack
 sudo docker stack deploy -c $COMPOSE_DIR/iot_app_compose.yml iot_app

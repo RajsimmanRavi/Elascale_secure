@@ -26,7 +26,7 @@ role="$1"
 
 # Hence this provides only the hostnames of the nodes we want to deploy dockbeat and metricbeat.
 # Store this in an array
-NODES=( $(sudo docker node ls | sed 's/*//g' | awk '{print $2}' | sed 's/Ready//g' |sed 's/HOSTNAME//g' | sed 's/STATUS//g'| sed '/^$/d') )
+NODES=( $(sudo docker node ls --format '{{ .Hostname }}') )
 
 for hostname in "${NODES[@]}"
 do

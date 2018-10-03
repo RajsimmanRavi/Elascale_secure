@@ -57,7 +57,8 @@ The following ports need to be opened in the security-group for Elascale to be w
 | tcp           |     5601   |    5601  |   Kibana         |
 | tcp           |     6633   |    6633  |   OpenFlow       |
 | tcp           |     6969   |    6969  |   REST API       |
-| tcp           |     8479   |    8479  |   VXLAN          |
+| tcp           |     8479   |    8479  |   OVS VXLAN      |
+| tcp           |     4789   |    4789  |   Docker VXLAN   |
 | tcp           |     8888   |    8888  |   Elascale UI    |
 | tcp           |     9200   |    9200  |   Elasticsearch  |
 
