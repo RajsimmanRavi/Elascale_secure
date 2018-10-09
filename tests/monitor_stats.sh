@@ -18,7 +18,7 @@ function monitor_replicas() {
       NOW=$(date +"%Y-%m-%d %R")
       echo "$NOW,$sensor_replicas,$rest_replicas" >> $1
     
-      sleep 30 
+      sleep 10 
     
     done
 }

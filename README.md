@@ -36,9 +36,12 @@ There are a couple of things that need to be configured for proper network monit
 
     * Make sure to deploy Elascale on ViNO (Virtual Network Overlay). 
       * For more information: refer to: https://github.com/RajsimmanRavi/vino_elascale 
-    * Make sure you build the correct graph in setup_topology.py
+    * Make sure you build the correct graph in setup_topology.py. Look at veth pairs in ovs-switches.
+      * Logging into Switches and using the command: sudo ovs-vsctl show will definitely helo=p.
+      * We also use veth pairs on VMs to control bandwidth using QoS ( This link may help: https://www.opencloudblog.com/?p=66)
     * Make sure the ports are correctly set in the graph (port names)
-    * Make sure you have the correct MACs and IPs in engine_config.py 
+    * Make sure you have the correct MACs and IPs in engine_config.py
+      * You can use autoscaler/network/get_macs.sh to automatically insert MACs on engine_config.py. But you have to cleanup any unnamed hosts.
 
 **Note:** This is not started by default. You can start by running get_netstats.py. Go to autoscaler dir and run the following command:
     ```sudo python3 -m autoscaler.network.get_netstats.py``` 
@@ -55,6 +58,7 @@ The following ports need to be opened in the security-group for Elascale to be w
 | tcp           |     2376   |    2377  |   Docker Daemon  |
 | tcp           |     3306   |    3306  |   MySQL          |
 | tcp           |     5601   |    5601  |   Kibana         |
+| tcp           |     6632   |    6632  |   OVSDB          |
 | tcp           |     6633   |    6633  |   OpenFlow       |
 | tcp           |     6969   |    6969  |   REST API       |
 | tcp           |     8479   |    8479  |   OVS VXLAN      |

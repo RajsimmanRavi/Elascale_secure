@@ -52,7 +52,7 @@ function start_tests {
     
     # Start the test scaling
     echo "Start Scaling tests..."
-    sudo ./test_scaling.sh
+    sudo ./test_scaling.sh "spatial"
     
     # Copy the stats files here
     echo "Copy stats file here"

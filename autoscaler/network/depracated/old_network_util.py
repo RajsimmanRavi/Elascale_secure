@@ -63,3 +63,22 @@ def bytes_2_human_readable_bits(number_of_bytes):
 
     return str(number_of_bits) + ' ' + unit
 
+
+# Keeping this for namesake.... remove after
+def get_port_stats(dpid):
+
+    dpid = str(dpid)
+    ryu_controller = eng.RYU_CONTROLLER
+    url = 'http://'+ryu_controller+'/stats/port/'+dpid
+    data = requests.get(url).json()
+    #print(json.dumps(data, indent=4, sort_keys=True))
+    data = json.dumps(data) # Convert dict to json string
+    data = json.loads(data) # Convert json string to json object
+
+    rx_bytes = 0
+    for ports in data[str(dpid)]:
+        rx_bytes += float(ports["rx_bytes"])
+
+    #print("For Switch: %s, total Rx Bytes: %s" %(dpid, str(rx_bytes)))
+    return rx_bytes
+

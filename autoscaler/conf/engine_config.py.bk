@@ -44,12 +44,8 @@ MAX_NET_VAL = 1e10 # Maximum Net_util value
 INVESTIGATION_PHASE_LENGTH = 6 # i.e. [0-6]. Hence, 6 consecutive samples shud be non-anomalous to exit inv. period
 ANOMALY_THRESHOLD =  1 - 10e-5 # Anomaly threshold
 
-#### QoS PARAMETERS FOR AUTONOMIC NETWORK CONTROL ####
-MAX_BW = 3e8 #(300 Mb/s) After this, Elascale will throttle the link to MIN_BW
-MIN_BW = 3e6 #(4 Mb/s)
-
 #### SWITCH TOPOLOGY #### [------ THESE HAVE TO BE MANUALLY UPDATED -------]
-RYU_CONTROLLER = "10.2.1.11:8090"
+RYU_CONTROLLER = "10.2.1.23:8090"
 SW1_IP = "10.2.1.20"
 SW2_IP = "10.2.1.22"
 SW3_IP = "10.2.1.21"
@@ -64,12 +60,12 @@ H7_IP = "192.168.200.16"
 # Mapping of all p0/p1 interfaces (for vxlans going through ovs switches)
 MAC_MAPPER = {
     "b6:e1:91:73:0e:dc": "h1",
-    "5a:97:d5:1a:ad:61": "h2",
-    "82:a6:f6:9f:d6:c2": "h3",
-    "7a:fc:77:dc:dc:64": "h4",
-    "3a:3d:cf:87:cd:49": "h5",
-    "7e:f6:b9:09:c3:62": "h6",
-    "92:ed:6b:72:e5:b1": "h7",
+    "": "h2",
+    "": "h3",
+    "": "h4",
+    "": "h5",
+    "": "h6",
+    "": "h7"
 }
 
 IP_MAPPER = {
@@ -77,9 +73,6 @@ IP_MAPPER = {
     H2_IP: "h2",
     H3_IP: "h3",
     H4_IP: "h4",
-    H5_IP: "h5",
-    H6_IP: "h6",
-    H7_IP: "h7",
     SW1_IP: "sw_1",
     SW2_IP: "sw_2",
     SW3_IP: "sw_3"

@@ -23,7 +23,7 @@ sudo mkdir -p /var/log/elascale
 sudo apt-get update
 
 #Install some prerequisite tools (if needed)
-sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common figlet
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common libssl-dev figlet
 
 #Check if Docker is already installed
 check_docker=`command -v docker`

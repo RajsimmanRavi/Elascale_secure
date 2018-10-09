@@ -17,7 +17,7 @@ logger.addHandler(handler)
 parser = argparse.ArgumentParser(description="*** Elascale Autoscaler Arguments ***")
 parser.add_argument('-ad', '--ad', help='Enable Anomaly Detection? (arg: bool). Default: False', type=util.str2bool, nargs='?', default=False)
 parser.add_argument('-macro', '--macro', help='Enable Autoscaling Macroservices? (arg: bool). Default: False', type=util.str2bool, nargs='?', default=False)
-parser.add_argument('-p', '--policy', help='Discrete or Adaptive Policy? (arg: "d"/"a"). Defaults: "d"', type=str, nargs='?', default='d')
+parser.add_argument('-p', '--policy', help='Discrete or Adaptive Policy? (arg: "d"/"a"/"none"). "none" is Monitor mode. Default: "d"', type=str, nargs='?', default='d')
 args = parser.parse_args()
 
 def start_process():
@@ -86,15 +86,19 @@ def micro_scale(services, elascale):
         #logger.warning("%s" %(str(util.get_micro_replicas(micro))))
         if args.policy == 'd':
             discrete_micro(micro, elascale.es)
-        else:
+        elif args.policy == 'a':
             adaptive_micro(micro, elascale.es)
+        else:
+            print("Enabled Monitor Mode. Not Autoscaling...")
 
 def macro_scale(nodes, elascale):
     for macro in nodes:
         if args.policy == 'd':
             discrete_macro(macro, elascale.es)
+        elif awgs.policy == 'a':
+            adaptive_micro(macro, elascale.es)
         else:
-            adaptive_macro(macro, elascale.es)
+            print("Enabled Monitor Mode. Not Autoscaling...")
 
 def main():
     print(util.run_command("figlet -f big Elascale"))

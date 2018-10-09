@@ -2,6 +2,11 @@
 
 # RR: I created this script for Testing Autoscaler and comparison between use of different policies
 
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 Type: 'simple' or 'spatial'" >&2
+  exit 1
+fi
+
 simple(){
   NOW=$(date +"%Y-%m-%d %H:%M:%S")
   echo "Starting testing now: $NOW"
@@ -50,4 +55,8 @@ spatial(){
   echo "Finished testing Yo Yo..."
 }
 
-spatial
+if [ $1 = "simple" ];then
+    simple
+else
+    spatial
+fi

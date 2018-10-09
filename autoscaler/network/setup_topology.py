@@ -5,7 +5,6 @@ import networkx as nx
 import autoscaler.conf.engine_config as eng
 import autoscaler.network.network_util as net_util
 
-# This is just an example topology for getting the switches in-between 2 hosts
 def setup_graph():
     G = nx.Graph()
 
@@ -13,36 +12,52 @@ def setup_graph():
     G.add_node("h2")
     G.add_node("h3")
     G.add_node("h4")
+    G.add_node("h5")
+    G.add_node("h6")
+    G.add_node("h7")
     G.add_node("sw_1")
     G.add_node("sw_2")
     G.add_node("sw_3")
 
     G.node["h1"]["ip"] = eng.H1_IP
-
-    G.node["h4"]["ip"] = eng.H4_IP
-
     G.node["h2"]["ip"] = eng.H2_IP
-
     G.node["h3"]["ip"] = eng.H3_IP
+    G.node["h4"]["ip"] = eng.H4_IP
+    G.node["h5"]["ip"] = eng.H5_IP
+    G.node["h6"]["ip"] = eng.H6_IP
+    G.node["h7"]["ip"] = eng.H7_IP
 
     G.node["sw_1"]["ip"] = eng.SW1_IP
-
     G.node["sw_2"]["ip"] = eng.SW2_IP
-
     G.node["sw_3"]["ip"] = eng.SW3_IP
 
     G.add_edge("h1", "sw_1")
     G["h1"]["sw_1"]["port"] = "pair_h1_1"
+
     G.add_edge("h4", "sw_1")
     G["h4"]["sw_1"]["port"] = "pair_h2_1"
+
+    G.add_edge("h5", "sw_1")
+    G["h5"]["sw_1"]["port"] = "pair_h3_1"
+
+    G.add_edge("h6", "sw_1")
+    G["h6"]["sw_1"]["port"] = "pair_h4_1"
+
     G.add_edge("h2", "sw_2")
     G["h2"]["sw_2"]["port"] = "pair_h2_1"
+
     G.add_edge("h3", "sw_3")
     G["h3"]["sw_3"]["port"] = "pair_h2_1"
+
+    G.add_edge("h7", "sw_3")
+    G["h7"]["sw_3"]["port"] = "pair_h3_1"
+
     G.add_edge("sw_1", "sw_2")
     G["sw_1"]["sw_2"]["port"] = "pair_h3_1"
+
     G.add_edge("sw_2", "sw_3")
     G["sw_2"]["sw_3"]["port"] = "pair_h3_1"
+
 
     return G
 
