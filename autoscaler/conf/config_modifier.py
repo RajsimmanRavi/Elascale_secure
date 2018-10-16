@@ -45,7 +45,7 @@ def add_config_section(f_name, new_section):
     config.set(new_section, 'min_replica', '1')
 
     if f_name == eng.MACRO_CONFIG:
-        config.set(new_section, "max_no_container", '4')
+        config.set(new_section, "max_no_container", '2')
 
     new_config = util.write_config_file(f_name, "a", config)
 

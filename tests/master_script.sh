@@ -3,9 +3,9 @@
 APP="iot_app"
 ELASCALE_LOG="/var/log/elascale/elascale.csv"
 COMPOSE_FILE="/home/ubuntu/Elascale_secure/docker_compose/iot_app_compose.yml"
-#PERIOD=1200 # For Eval_1
-PERIOD=300  # For Eval_2
-FOLDER="eval_2" # folder to store stats 
+PERIOD=1200 # For Eval_1
+#PERIOD=300  # For Eval_2
+FOLDER="eval_1" # folder to store stats 
 
 function rm_app {
     sudo docker stack rm $APP
@@ -59,36 +59,37 @@ function start_tests {
 }
 
 # This is what I did for Evaluation #1
-#for i in {1..2}
-#do
-#    rm_app 
-#    rm_autoscaler
-#    deploy_app
-#    if [ "$i" -eq 1 ];then
-#        start_autoscaler 'none'
-#    elif [ "$i" -eq 2 ];then
-#        start_autoscaler 'd'
-#    fi
-#    start_tests "new_test/replicas_$i.csv" "stats_$i.csv" "new_test/elascale_$i.csv" 'simple'
-#    rm_app
-#    rm_autoscaler
-#
-#    sleep 120s
-#done
-
 for i in {1..2}
 do
     rm_app 
     rm_autoscaler
     deploy_app
     if [ "$i" -eq 1 ];then
-        start_autoscaler 'd'
+        start_autoscaler 'none'
     elif [ "$i" -eq 2 ];then
-        start_autoscaler 'a'
+        start_autoscaler 'd'
     fi
-        start_tests "$FOLDER/replicas_$i.csv" "stats_$i.csv" "$FOLDER/elascale_$i.csv" 'spatial'
+    start_tests "$FOLDER/replicas_$i.csv" "stats_$i.csv" "$FOLDER/elascale_$i.csv" 'simple'
     rm_app
     rm_autoscaler
 
     sleep 120s
 done
+
+# This is what I did for Elavulation #2 (For Discrete vs. Adaptive Policies)
+#for i in {1..2}
+#do
+#    rm_app 
+#    rm_autoscaler
+#    deploy_app
+#    if [ "$i" -eq 1 ];then
+#        start_autoscaler 'd'
+#    elif [ "$i" -eq 2 ];then
+#        start_autoscaler 'a'
+#    fi
+#        start_tests "$FOLDER/replicas_$i.csv" "stats_$i.csv" "$FOLDER/elascale_$i.csv" 'spatial'
+#    rm_app
+#    rm_autoscaler
+#
+#    sleep 120s
+#done

@@ -15,6 +15,7 @@ def get_dpid(ip):
     ryu_controller = eng.RYU_CONTROLLER
     url = 'http://'+ryu_controller+'/v1.0/topology/switches'
     data = requests.get(url).json()
+    print("data: %s" %str(data))
     for item in data:
         if ip == item["ip"]:
             return item["dpid"]

@@ -15,7 +15,7 @@ IGNORE_APP = "EK_monitor,beats"
 # List of microservices you want to ignore (eg. monitoring components)
 IGNORE_MICRO = "sensor,db"
 # List of macroservices you want to ignore (eg. monitor VM)
-IGNORE_MACRO = "iot-agg-sensor,iot-core,iot-master,iot-monitor"
+IGNORE_MACRO = "iot-rajsimman-h1,iot-rajsimman-h3,iot-rajsimman-h4,iot-rajsimman-h5,iot-rajsimman-h6,iot-rajsimman-h7"
 # For monitoring dockbeat and metricbeat stats. We look into last 30 seconds of metric data; the value is an average during 30 seconds
 #START_TIME = "now-15s" # Testing
 STARTUP_TIME = "now-30s"
