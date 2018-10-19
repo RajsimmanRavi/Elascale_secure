@@ -15,7 +15,7 @@ def get_dpid(ip):
     ryu_controller = eng.RYU_CONTROLLER
     url = 'http://'+ryu_controller+'/v1.0/topology/switches'
     data = requests.get(url).json()
-    print("data: %s" %str(data))
+    #print("data: %s" %str(data))
     for item in data:
         if ip == item["ip"]:
             return item["dpid"]
@@ -24,7 +24,7 @@ def calc_bw(prev, curr):
     prev = float(prev)
     curr = float(curr)
 
-    bw = ((curr - prev)/eng.MONITORING_INTERVAL)
+    bw = ((curr - prev)/eng.NETWORK_MONITORING_INTERVAL)
     return bw
 
 def calc_bw_left(prev, curr):

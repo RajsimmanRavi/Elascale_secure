@@ -3,9 +3,11 @@
 APP="iot_app"
 ELASCALE_LOG="/var/log/elascale/elascale.csv"
 COMPOSE_FILE="/home/ubuntu/Elascale_secure/docker_compose/iot_app_compose.yml"
-PERIOD=1200 # For Eval_1
-#PERIOD=300  # For Eval_2
-FOLDER="eval_1" # folder to store stats 
+EVAL_1_PERIOD=1200 # For Eval_1
+EVAL_1_FOLDER="eval_1" # folder to store stats 
+
+EVAL_2_PERIOD=300  # For Eval_2
+EVAL_2_FOLDER="eval_2" # folder to store stats 
 
 function rm_app {
     sudo docker stack rm $APP
@@ -44,7 +46,7 @@ function start_tests {
     
     # Monitor the replicas on background
     echo "Start Monitoring replicas..."
-    sudo ./monitor_stats.sh $1 $PERIOD replicas & 
+    sudo ./monitor_stats.sh $1 $EVAL_1_PERIOD replicas & 
     
     # Start the test scaling
     echo "Start Scaling tests..."
@@ -52,7 +54,7 @@ function start_tests {
     
     # Copy the stats files here
     echo "Copy stats file here"
-    sudo ./copy_files.sh $FOLDER $2
+    sudo ./copy_files.sh $EVAL_1_FOLDER $2
     
     # Copy CPU and replica stats from Elascale Autoscaler
     sudo cp $ELASCALE_LOG $3
@@ -69,7 +71,7 @@ do
     elif [ "$i" -eq 2 ];then
         start_autoscaler 'd'
     fi
-    start_tests "$FOLDER/replicas_$i.csv" "stats_$i.csv" "$FOLDER/elascale_$i.csv" 'simple'
+    start_tests "$EVAL_1_FOLDER/replicas_$i.csv" "stats_$i.csv" "$EVAL_1_FOLDER/elascale_$i.csv" 'simple'
     rm_app
     rm_autoscaler
 

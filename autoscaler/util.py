@@ -10,6 +10,7 @@ from prettytable import PrettyTable
 import autoscaler.conf.engine_config as eng
 import autoscaler.monitor.beats_stats as stats
 import argparse
+import pandas as pd
 
 def get_vm_info(vm):
     """ Function to fetch vm information. Used for creating another vm with same specs.
@@ -113,14 +114,18 @@ def get_app_stacks():
 
     return results
 
-def get_stack_services(stack):
+def get_stack_services(stack,no_filter=None):
     # Fetches all the microservices for a specific application
     cmd = "sudo docker stack services "+stack+" --format '{{ .Name }}'"
     result = run_command(cmd)
     services = result.split("\n")
-    results = filter_list(services, eng.IGNORE_MICRO.split(",")) # Filters services that are supposed to be ignored
+    if not no_filter:
+        results = filter_list(services, eng.IGNORE_MICRO.split(",")) # Filters services that are supposed to be ignored
+    else:
+        results = services
+        print("MONITORING MICROSERVICES: %s" %(str(results))) # If statement prints when removing extra resources... just confuses me
 
-    print("MONITORING MICROSERVICES: %s" %(str(results)))
+
     return results
 
 def get_stack_nodes(stack):
@@ -144,7 +149,7 @@ def get_macroservice(micro):
 def get_micro_replicas(micro):
     cmd = "sudo docker service inspect "+micro+" -f '{{ .Spec.Mode.Replicated.Replicas }}'"
     curr_replicas = run_command(cmd)
-    print("CURR MICRO REPLICAS: %s" %str(curr_replicas))
+    #print("CURR MICRO REPLICAS: %s" %str(curr_replicas))
     return curr_replicas
 
 # HK: The function gets the number of replicas for a given specific node at that point
@@ -206,14 +211,14 @@ def remove_extra_resources(app):
     """
        Removes any extra provisioned resources allocated by the autoscaler. This is executed only when anomaly is detected.
     """
-    services = util.get_stack_services(app)
+    # This filters out ignore micros. Hence, you can remove those replicas
+    services = get_stack_services(app)
     for micro in services:
 
-        current_replica = util.get_micro_replicas(micro)
-
+        current_replica = get_micro_replicas(micro)
         if int(current_replica) != 1:
             print("Micro: %s Number of Replicas: %s" %(micro, str(current_replica)))
-            result = util.run_command("sudo docker service scale "+micro+"="+str(1))
+            result = run_command("sudo docker service scale "+micro+"="+str(1))
 
 def filter_list(services, ignore_list):
     """ Removes items in services that are mentioned to be removed (located in ignore_list)
@@ -230,6 +235,7 @@ def filter_list(services, ignore_list):
         if not (any(substring in serv for substring in ignore_list)):
             final_list.append(serv)
     return final_list
+
 
 def run_command(command):
     try:
@@ -314,8 +320,10 @@ def read_config_file(config_file):
 
 # Write to config file
 def write_config_file(f_name, mode, config_data):
+
     with open(f_name, mode) as f:
         config_data.write(f)
+
     return config_data
 
 # Write to file
@@ -449,6 +457,11 @@ def check_threshold(service, config_high_threshold, config_low_threshold, curr_u
     else:
         return "Normal"
 
+def recreate_log_file(f_name, header):
+    if os.access(f_name, os.R_OK):
+        os.remove(f_name)
+        write_to_file(f_name, header)
+
 def prepare_for_beats(vm_name):
 
     print('\nPreparing VM for Beats: ' + vm_name)
@@ -479,3 +492,27 @@ def prepare_for_beats(vm_name):
     run_command("sudo docker-machine ssh "+vm_name+" sudo mkdir -p /volumes/dockbeat-logs/")
 
     print('dockbeat and metricbeat yml files have been copied/configured successfully.')
+
+# Small snippet to record data for evaluation purposes
+def collect_stats(es, final_score=None):
+
+    sensor_stats,sensor_replicas = get_stats("iot_app_sensor", es, "Micro"),get_micro_replicas("iot_app_sensor")
+    sensor_cpu_util,sensor_net = str(float(sensor_stats['curr_cpu_util'])),str(float(sensor_stats["curr_netTx_util"]))
+
+    api_stats, api_replicas = get_stats("iot_app_rest_api", es, "Micro"),get_micro_replicas("iot_app_rest_api")
+    api_cpu_util, api_net = str(float(api_stats['curr_cpu_util'])),str(float(api_stats["curr_netTx_util"]))
+
+    db_stats,db_replicas = get_stats("iot_app_db", es, "Micro"),get_micro_replicas("iot_app_db")
+    db_cpu_util,db_net = str(float(db_stats['curr_cpu_util'])),str(float(db_stats["curr_netTx_util"]))
+
+    timestamp = pd.Timestamp.now()
+
+    # This is for collecting stats for evaluation
+    write_stats = "%s," %(str(timestamp))
+    write_stats += "%s,%s,%s," %(sensor_cpu_util,sensor_net,sensor_replicas)
+    write_stats += "%s,%s,%s," %(api_cpu_util,api_net,api_replicas)
+    write_stats += "%s,%s,%s," %(db_cpu_util,db_net,db_replicas)
+    write_stats += "%s\n" %(str(final_score))
+
+    print(write_stats)
+    write_to_file(eng.LOGGING_FILE, write_stats)

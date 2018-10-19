@@ -8,9 +8,8 @@ temporal(){
   do
       if [[ "$i" -ne 7  ]]; then
       #if [[ "$i" -ne 4  ]] || [[ "$i" -ne 7 ]]; then
-      # I had 10 and 20 originally for CNSM
       
-          sudo docker service scale iot_app_sensor=12
+          sudo docker service scale iot_app_sensor=10
           
           sleep 450s
   
@@ -19,7 +18,7 @@ temporal(){
           sleep 450s
       
       else
-          sudo docker service scale iot_app_sensor=12
+          sudo docker service scale iot_app_sensor=10
           
           sleep 450s
           
@@ -27,7 +26,7 @@ temporal(){
           
           sleep 150s
   
-          sudo docker service scale iot_app_sensor=30
+          sudo docker service scale iot_app_sensor=20
   
           sleep 150s
   
@@ -48,7 +47,7 @@ spatial(){
   
   for i in `seq 1 5`;
   do
-      sudo docker service scale iot_app_sensor=12
+      sudo docker service scale iot_app_sensor=10
   
       sleep 120s
   

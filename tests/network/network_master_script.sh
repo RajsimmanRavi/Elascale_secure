@@ -12,7 +12,8 @@ function rm_autoscaler {
 }
 
 function rm_sensor {
-    PID=`$DOCKER_MACHINE_CMD ps -aux | grep send_wifi_data | grep tmux |  awk '{print $2}'`
+    PID=`$DOCKER_MACHINE_CMD ps -aux | grep send_wifi_data | grep -v 'color' |  awk '{print $2}'`
+    #PID=`$DOCKER_MACHINE_CMD ps -aux | grep send_wifi_data | grep tmux |  awk '{print $2}'`
     $DOCKER_MACHINE_CMD sudo kill -9 $PID
 }
 

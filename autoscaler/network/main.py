@@ -49,7 +49,7 @@ def monitor_flow_stats(dpid, switch, db):
     url = 'http://'+ryu_controller+'/stats/flow/'+dpid
     data = requests.get(url).json()
     data = json.dumps(data) # Convert dict to json string
-    print(data)
+    #print(data)
     data = json.loads(data) # Convert json string to json object
 
     for flow in data[str(dpid)]:
@@ -117,7 +117,7 @@ def main():
             dpid = int(net_util.get_dpid(sw),16)
             monitor_flow_stats(dpid, eng.IP_MAPPER[sw], flow_db)
 
-        util.progress_bar(eng.MONITORING_INTERVAL)
+        util.progress_bar(eng.NETWORK_MONITORING_INTERVAL)
 
 
 if __name__=="__main__":

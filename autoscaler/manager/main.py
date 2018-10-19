@@ -4,18 +4,27 @@ import autoscaler.conf.engine_config as eng
 from autoscaler.policy.discrete import discrete_micro, discrete_macro
 from autoscaler.policy.adaptive import adaptive_micro, adaptive_macro
 import argparse
-import logging
-from logging.handlers import RotatingFileHandler
+import os
 
-formatter = logging.Formatter('%(asctime)s,%(message)s',"%Y-%m-%d %H:%M")
-logger = logging.getLogger(__name__)
-handler = RotatingFileHandler(eng.LOGGING_FILE, maxBytes=5*1024*1024, backupCount=10)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+# For eDoS Mitigation Evaluation Results
 
+overall_header = "Timestamp,Sensor CPU Usage,Sensor Network Transmitted Bytes,Sensor Replicas,"
+overall_header += "REST API CPU Usage,REST API Network Transmitted Bytes,REST API Sensor Replicas,"
+overall_header += "DB CPU Usage,DB Network Transmitted Bytes,DB Replicas,Anomaly Score\n"
+util.recreate_log_file(eng.LOGGING_FILE,overall_header)
+
+"""
+# Not needed anymore. Verified HTM and RE are using all the microservices for anomaly scores
+# If you do need to uncomment it, then you need to uncomment saving stats in anomaly_detection/ad_util.py
+
+separate_stats_header = "Timestamp,CPU Usage,Network Transmitted Bytes,CPU Anomaly Score,Network Anomaly Score,Final Anomaly Score\n"
+util.recreate_log_file("/home/ubuntu/Elascale_secure/tests/cnsm/iot_app_rest_api_stats.csv", separate_stats_header)
+util.recreate_log_file("/home/ubuntu/Elascale_secure/tests/cnsm/iot_app_db_stats.csv", separate_stats_header)
+"""
 
 parser = argparse.ArgumentParser(description="*** Elascale Autoscaler Arguments ***")
 parser.add_argument('-ad', '--ad', help='Enable Anomaly Detection? (arg: bool). Default: False', type=util.str2bool, nargs='?', default=False)
+parser.add_argument('-ad_alg', '--ad_alg', help='Anomaly Detection Type: "re" or "htm". Default: "htm"', type=str, nargs='?', default='htm')
 parser.add_argument('-macro', '--macro', help='Enable Autoscaling Macroservices? (arg: bool). Default: False', type=util.str2bool, nargs='?', default=False)
 parser.add_argument('-p', '--policy', help='Discrete or Adaptive Policy? (arg: "d"/"a"/"none"). "none" is Monitor mode. Default: "d"', type=str, nargs='?', default='d')
 args = parser.parse_args()
@@ -34,7 +43,7 @@ def start_process():
         print("Anomaly Detection Enabled")
         from autoscaler.anomaly_detection import ad_util
         anomaly_scores = []
-        detects = ad_util.init_detects(elascale)
+        detects = ad_util.init_detects(elascale, args.ad_alg)
         sample_counter = 0 # This is for how many times in investigation period
 
     while True:
@@ -46,22 +55,21 @@ def start_process():
         print("MONITORING APPS: %s" %(str(apps)))
         for app in apps:
 
-            # Get macro/microservices for that specific application
-            services = util.get_stack_services(app)
-
+            # Get microservices for that specific application
+            services = util.get_stack_services(app,True)
 
             # If Anomaly detection is enabled
             if enable_ad:
-                final_score = ad_util.anomaly_detection(services, elascale.es, detects)
+                final_score = ad_util.anomaly_detection(services, elascale.es, detects, args.ad_alg)
 
                 if (final_score > eng.ANOMALY_THRESHOLD):
                     print("--- Entered investigation period... ---")
                     sample_counter = 1
-                    util.remove_extra_replicas(app)
+                    util.remove_extra_resources(app)
                 else:
                     if 0 < sample_counter <= eng.INVESTIGATION_PHASE_LENGTH:
                         print("--- Still in investigation period... ---")
-                        util.remove_extra_replicas(app)
+                        util.remove_extra_resources(app)
                         sample_counter += 1
                     else:
                         print("--- Exiting investigation period and start scaling procedure... ---")
@@ -73,11 +81,16 @@ def start_process():
                     nodes = util.get_stack_nodes(app)
                     macro_scale(nodes, elascale)
 
+        """
         # This is for collecting stats for evaluation
-        curr_info = util.get_cpu_util("iot_app_rest_api", elascale.es, "Micro", "high")
-        curr,thres = curr_info["util"], curr_info["thres"]
-        cpu_stats = "%s,%s" %(str(curr), str(util.get_micro_replicas("iot_app_rest_api")))
-        logger.warning(cpu_stats)
+        stats = util.get_stats("iot_app_rest_api", elascale.es, "Micro")
+        cpu_util = float(stats['curr_cpu_util'])
+        net_tx_util = float(stats["curr_netTx_util"])
+
+        write_stats = "%s,%s" %(str(cpu_util),str(net_tx_util),str(util.get_micro_replicas("iot_app_sensor")),str(util.get_micro_replicas("iot_app_rest_api")))
+        logger.warning(write_stats)
+        """
+        util.collect_stats(elascale.es)
 
         util.progress_bar(eng.MONITORING_INTERVAL)
 

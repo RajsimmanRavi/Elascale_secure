@@ -9,7 +9,8 @@ CONFIG_PATH = PLATFORM_DIR + "/autoscaler/conf"
 MICRO_CONFIG = CONFIG_PATH + "/microservices.ini"
 MACRO_CONFIG = CONFIG_PATH + "/macroservices.ini"
 # Frequency of monitoring in seconds;
-MONITORING_INTERVAL = 10
+MONITORING_INTERVAL = 10 # every x seconds
+NETWORK_MONITORING_INTERVAL = 10 # every x seconds
 # List of apps you want to ignore (eg. monitoring components)
 IGNORE_APP = "EK_monitor,beats"
 # List of microservices you want to ignore (eg. monitoring components)
