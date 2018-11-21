@@ -7,10 +7,12 @@ import argparse
 import os
 
 # For eDoS Mitigation Evaluation Results
-
 overall_header = "Timestamp,Sensor CPU Usage,Sensor Network Transmitted Bytes,Sensor Replicas,"
 overall_header += "REST API CPU Usage,REST API Network Transmitted Bytes,REST API Sensor Replicas,"
-overall_header += "DB CPU Usage,DB Network Transmitted Bytes,DB Replicas,Anomaly Score\n"
+overall_header += "DB CPU Usage,DB Network Transmitted Bytes,DB Replicas,"
+overall_header += "IoT-EDGE CPU Usage, IoT-EDGE Network Transmitted Bytes, IoT-EDGE Replicas,"
+overall_header += "Anomaly Score\n"
+
 util.recreate_log_file(eng.LOGGING_FILE,overall_header)
 
 """
@@ -76,27 +78,19 @@ def start_process():
                         sample_counter = 0
                         micro_scale(services, elascale)
             else:
-                micro_scale(services, elascale)
                 if enable_macro:
                     nodes = util.get_stack_nodes(app)
                     macro_scale(nodes, elascale)
+                micro_scale(services, elascale)
 
-        """
-        # This is for collecting stats for evaluation
-        stats = util.get_stats("iot_app_rest_api", elascale.es, "Micro")
-        cpu_util = float(stats['curr_cpu_util'])
-        net_tx_util = float(stats["curr_netTx_util"])
-
-        write_stats = "%s,%s" %(str(cpu_util),str(net_tx_util),str(util.get_micro_replicas("iot_app_sensor")),str(util.get_micro_replicas("iot_app_rest_api")))
-        logger.warning(write_stats)
-        """
-        util.collect_stats(elascale.es)
+        # I already collect stats if ad is enabled (in ad_util.py). So, if not enabled, collect here
+        if not enable_ad:
+            util.collect_stats(eng.LOGGING_FILE, elascale.es)
 
         util.progress_bar(eng.MONITORING_INTERVAL)
 
 def micro_scale(services, elascale):
     for micro in services:
-        #logger.warning("%s" %(str(util.get_micro_replicas(micro))))
         if args.policy == 'd':
             discrete_micro(micro, elascale.es)
         elif args.policy == 'a':
@@ -108,8 +102,8 @@ def macro_scale(nodes, elascale):
     for macro in nodes:
         if args.policy == 'd':
             discrete_macro(macro, elascale.es)
-        elif awgs.policy == 'a':
-            adaptive_micro(macro, elascale.es)
+        elif args.policy == 'a':
+            adaptive_macro(macro, elascale.es)
         else:
             print("Enabled Monitor Mode. Not Autoscaling...")
 

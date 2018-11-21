@@ -114,19 +114,30 @@ def get_app_stacks():
 
     return results
 
-def get_stack_services(stack,no_filter=None):
+def get_stack_services(stack,bool_filter=None):
     # Fetches all the microservices for a specific application
     cmd = "sudo docker stack services "+stack+" --format '{{ .Name }}'"
     result = run_command(cmd)
     services = result.split("\n")
-    if not no_filter:
+    if bool_filter:
         results = filter_list(services, eng.IGNORE_MICRO.split(",")) # Filters services that are supposed to be ignored
     else:
         results = services
-        print("MONITORING MICROSERVICES: %s" %(str(results))) # If statement prints when removing extra resources... just confuses me
 
-
+    print("MONITORING MICROSERVICES: %s" %(str(results))) # If statement prints when removing extra resources... just confuses me
     return results
+
+def remove_duplicates(macros):
+
+    final_list = []
+
+    for item in macros:
+        new_item = item.split(".")[0]
+        final_list.append(new_item)
+
+    final_list = list(set(final_list))
+
+    return final_list
 
 def get_stack_nodes(stack):
     # Fetches all the macroservices/nodes for a specific application
@@ -135,6 +146,9 @@ def get_stack_nodes(stack):
     result = run_command(cmd)
     nodes = result.split("\n")
     results = filter_list(nodes, eng.IGNORE_MACRO.split(",")) # Filters services that are supposed to be ignored
+
+    # If more macroservices are provisioned, then it may be caught in this list. Hence, remove those replicas from this list
+    results = remove_duplicates(results)
 
     print("MONITORING MACROSERVICES: %s" %(str(results)))
     return results
@@ -234,6 +248,10 @@ def filter_list(services, ignore_list):
     for serv in services:
         if not (any(substring in serv for substring in ignore_list)):
             final_list.append(serv)
+
+    # Removing any duplicates
+    final_list = sorted(set(final_list))
+
     return final_list
 
 
@@ -494,7 +512,7 @@ def prepare_for_beats(vm_name):
     print('dockbeat and metricbeat yml files have been copied/configured successfully.')
 
 # Small snippet to record data for evaluation purposes
-def collect_stats(es, final_score=None):
+def collect_stats(file_name, es, final_score=None):
 
     sensor_stats,sensor_replicas = get_stats("iot_app_sensor", es, "Micro"),get_micro_replicas("iot_app_sensor")
     sensor_cpu_util,sensor_net = str(float(sensor_stats['curr_cpu_util'])),str(float(sensor_stats["curr_netTx_util"]))
@@ -505,6 +523,9 @@ def collect_stats(es, final_score=None):
     db_stats,db_replicas = get_stats("iot_app_db", es, "Micro"),get_micro_replicas("iot_app_db")
     db_cpu_util,db_net = str(float(db_stats['curr_cpu_util'])),str(float(db_stats["curr_netTx_util"]))
 
+    edge_stats,edge_replicas = get_stats("iot-edge", es, "Macro"),get_macro_replicas("iot-edge")
+    edge_cpu_util,edge_net = str(float(edge_stats['curr_cpu_util'])),str(float(edge_stats["curr_netTx_util"]))
+
     timestamp = pd.Timestamp.now()
 
     # This is for collecting stats for evaluation
@@ -512,7 +533,8 @@ def collect_stats(es, final_score=None):
     write_stats += "%s,%s,%s," %(sensor_cpu_util,sensor_net,sensor_replicas)
     write_stats += "%s,%s,%s," %(api_cpu_util,api_net,api_replicas)
     write_stats += "%s,%s,%s," %(db_cpu_util,db_net,db_replicas)
+    write_stats += "%s,%s,%s," %(edge_cpu_util,edge_net,edge_replicas)
     write_stats += "%s\n" %(str(final_score))
 
-    print(write_stats)
-    write_to_file(eng.LOGGING_FILE, write_stats)
+    #print(write_stats)
+    write_to_file(file_name, write_stats)

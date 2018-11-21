@@ -23,7 +23,7 @@ sudo mkdir -p /var/log/elascale
 sudo apt-get update
 
 #Install some prerequisite tools (if needed)
-sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common libssl-dev figlet
+sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common libssl-dev libcurl4-openssl-dev figlet
 
 #Check if Docker is already installed
 check_docker=`command -v docker`
@@ -138,6 +138,7 @@ fi
 # RR: Heirarchical Temporal Memory utilizes python2 only. 
 # Hence, installing packages for Autoscaler and UI using on pip2
 sudo apt-get install -y python-pip
+sudo pip2 install --upgrade pip
 sudo pip2 install -r $PIP2_AUTOSCALER_REQUIREMENTS
 
 #*********** Install pip and necessary packages for Autoscaler and UI ***************

@@ -71,11 +71,12 @@ def anomaly_detection(services, es, detects, detect_type):
     if services:
         # Anomaly detection
         for item in services:
-            if item != "iot_app_sensor":
-                micro_score = check_anomalies(item, es, "Micro", detects, detect_type)
-                scores.append(micro_score)
+            #if item != "iot_app_sensor":
+            micro_score = check_anomalies(item, es, "Micro", detects, detect_type)
+            scores.append(micro_score)
 
         final_score = np.max(scores)
-        collect_stats(es, final_score)
+        file_name = "/var/log/elascale/"+detect_type+"_stats.csv"
+        util.collect_stats(file_name, es, final_score)
 
     return final_score

@@ -42,7 +42,7 @@ function start_autoscaler () {
 
 function start_tests {
     # Go to the tests folder
-    cd /home/ubuntu/Elascale_secure/tests
+    cd /home/ubuntu/Elascale_secure/tests/compute
     
     # Monitor the replicas on background
     echo "Start Monitoring replicas..."

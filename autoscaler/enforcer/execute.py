@@ -10,7 +10,7 @@ import pandas as pd
 
 def scale_microservice(service_name, value):
 
-    # Read the current config file
+    # Read the current config files
     micro_config = util.read_config_file(eng.MICRO_CONFIG)
 
     if micro_config[service_name]['auto_scale']:
@@ -33,11 +33,22 @@ def scale_microservice(service_name, value):
             return
 
         else:
+            """
+            # You need to check whether the total_replicas exceeds max_no_container (in MACRO_CONFIG)
+            macro_config = util.read_config_file(eng.MACRO_CONFIG)
+
+            macro_service = util.get_macroservice(service_name)
+            max_no_containers = int(micro_config.get(macro_service, 'max_no_container'))
+
+            if total_replicas > max_no_containers:
+
+                print("----- Maximum Number of Replicas exceeded for Macroservice.... Hence, autoscaling Macroservice: " + macroservice + " first\n")
+                print("----- Scaling microservice: " + service_name + " to: " + str(total_replica) +" at time: " + str(st) + "\n")
+            """
+
             st = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
             print("----- Scaling microservice: " + service_name + " to: " + str(total_replica) +" at time: " + str(st) + "\n")
 
-
-            #gevent.sleep(0)
             result = util.run_command("sudo docker service scale "+service_name+"="+str(total_replica))
             return
     else:
@@ -49,7 +60,7 @@ def scale_macroservice(host_name, value):
     # Read the current config file
     macro_config = util.read_config_file(eng.MACRO_CONFIG)
 
-    if micro_config[host_name]['auto_scale']:
+    if macro_config[host_name]['auto_scale']:
 
         print("### Scaling macro_service: "+host_name+" of value: "+str(value))
 

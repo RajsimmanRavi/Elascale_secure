@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MACHINE="iot-rajsimman-h5"
+MACHINE="iot-agg-sensor"
 
 if [ "$#" -ne 2 ]; then
   echo "Usage: $0 FOLDER FILE_NAME" >&2

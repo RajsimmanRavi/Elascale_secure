@@ -7,7 +7,7 @@ services:
         constraints:
           - node.labels.loc == agg-sensor
     environment:
-      REST_API_IP: 10.2.1.12
+      REST_API_IPS: 10.2.1.15
       REST_API_PORT: 6969
   rest_api:
     image: perplexedgamer/rest_api:latest
@@ -20,7 +20,7 @@ services:
         window: 120s
     environment:
       REST_API_PORT: 6969
-      MYSQL_IP: 10.2.1.13
+      MYSQL_IP: 10.2.1.16
     ports:
       -  target: 6969
          published: 6969

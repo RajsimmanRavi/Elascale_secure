@@ -16,14 +16,14 @@ IGNORE_APP = "EK_monitor,beats"
 # List of microservices you want to ignore (eg. monitoring components)
 IGNORE_MICRO = "sensor,db"
 # List of macroservices you want to ignore (eg. monitor VM)
-IGNORE_MACRO = "iot-rajsimman-h1,iot-rajsimman-h3,iot-rajsimman-h4,iot-rajsimman-h5,iot-rajsimman-h6,iot-rajsimman-h7"
+IGNORE_MACRO = "iot-agg-sensor,iot-core,iot-monitor,iot-master"
 # For monitoring dockbeat and metricbeat stats. We look into last 30 seconds of metric data; the value is an average during 30 seconds
 #START_TIME = "now-15s" # Testing
 STARTUP_TIME = "now-30s"
 
 #### UI DEPENDENT CONSTANT VARIABLES ####
-ELASTIC_IP = "10.2.1.18"
-UI_IP = "10.2.1.15"
+ELASTIC_IP = "10.2.1.17"
+UI_IP = "10.2.1.12"
 UI_PORT = "8888"
 UI_USERNAME = "elascale"
 UI_PASSWORD = "savi_elascale"
@@ -33,12 +33,15 @@ UI_SELF_KEY = PLATFORM_DIR + "/certs/elascale_ui_private_key.pem"
 
 #### ADAPTIVE POLICIES CONSTANTS ####
 #ALPHA = 0.1
+#ALPHA = 0.55
 ALPHA = 0.25
+#ALPHA = 0.68
 BETA = 5
 MIN_THRES = 0.15
 
 #### ANOMALY DETECTION MODEL PARAMETERS ####
 PROB_WINDOW = 108 # What I had for CNSM and worked fine. Sampling frequency: 6 samples/min (beats data every 10 secs) --> 18 minutes
+#PROB_WINDOW = 324 # What I had for CNSM and worked fine. Sampling frequency: 6 samples/min (beats data every 10 secs) --> 18 minutes
 MIN_CPU_VAL = 0.0 # Minimum cpu_util value
 MAX_CPU_VAL = 2e2 # Maximum cpu_util value
 MAX_NET_VAL = 1e10 # Maximum Net_util value

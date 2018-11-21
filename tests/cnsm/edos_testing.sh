@@ -10,7 +10,7 @@ temporal(){
       #if [[ "$i" -ne 4  ]] || [[ "$i" -ne 7 ]]; then
       # I had 10 and 20 originally for CNSM
       
-          sudo docker service scale iot_app_sensor=12
+          sudo docker service scale iot_app_sensor=6
           
           sleep 450s
   
@@ -19,7 +19,7 @@ temporal(){
           sleep 450s
       
       else
-          sudo docker service scale iot_app_sensor=12
+          sudo docker service scale iot_app_sensor=6
           
           sleep 450s
           
@@ -27,9 +27,10 @@ temporal(){
           
           sleep 150s
   
-          sudo docker service scale iot_app_sensor=30
+          sudo docker service scale iot_app_sensor=20
   
-          sleep 150s
+          sleep 450s
+          #sleep 900s
   
           sudo docker service scale iot_app_sensor=1
   
@@ -64,8 +65,9 @@ spatial(){
 
 # For concept drift testing
 concept_drift(){
+  # I had 10 for old IoT App
   sleep 3600s
-  sudo docker service scale iot_app_sensor=10
+  sudo docker service scale iot_app_sensor=20
   sleep 3600s
   sudo docker service scale iot_app_sensor=1
 }

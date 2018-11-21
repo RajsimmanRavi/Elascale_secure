@@ -68,7 +68,7 @@ echo "Updating values inside docker_compose files for IoT App deployment..."
 #After provisioning the VMs, we have to edit the apropriate docker_compose files to change values 
 
 #Change the IP address for REST_API_IP in iot_compose.yml file
-sed -i "s/REST_API_IP: .*/REST_API_IP: $EDGE_IP/g" $COMPOSE_DIR/iot_app_compose.yml
+sed -i "s/REST_API_IPS: .*/REST_API_IPS: $EDGE_IP/g" $COMPOSE_DIR/iot_app_compose.yml
 
 #Change the IP address for MYSQL_IP in iot_compose.yml file
 sed -i "s/MYSQL_IP: .*/MYSQL_IP: $CORE_IP/g" $COMPOSE_DIR/iot_app_compose.yml

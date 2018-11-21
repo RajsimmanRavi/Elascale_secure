@@ -48,7 +48,7 @@ def add_config_section(f_name, new_section):
     config.set(new_section, 'auto_scale', 'True')
 
     if f_name == eng.MACRO_CONFIG:
-        config.set(new_section, "max_no_container", '2')
+        config.set(new_section, "max_no_container", '3')
 
     new_config = util.write_config_file(f_name, "a", config)
 
@@ -91,6 +91,9 @@ def update_services(ignore_list, f_name, apps=None):
     for service in file_services:
         if service not in running_services:
             remove_config_section(f_name, service)
+
+    # Get the latest config files
+    file_services = util.read_config_file(f_name).sections()
 
     # Update auto_scale label
     for serv in file_services:
