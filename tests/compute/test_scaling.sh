@@ -22,7 +22,10 @@ simple(){
   
   NOW=$(date +"%Y-%m-%d %H:%M:%S")
   echo "Starting to scale back now: $NOW"
-  
+ 
+  # Copy files before scaling back
+  sudo ./copy_files.sh "eval_1"
+
   sudo docker service scale iot_app_sensor=1 
   sleep 300s
   

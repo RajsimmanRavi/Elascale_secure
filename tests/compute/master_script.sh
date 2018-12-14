@@ -54,7 +54,7 @@ function start_tests {
     
     # Copy the stats files here
     echo "Copy stats file here"
-    sudo ./copy_files.sh $EVAL_1_FOLDER $2
+    sudo ./copy_files.sh $EVAL_1_FOLDER 
     
     # Copy CPU and replica stats from Elascale Autoscaler
     sudo cp $ELASCALE_LOG $3
@@ -69,7 +69,7 @@ do
     if [ "$i" -eq 1 ];then
         start_autoscaler 'none'
     elif [ "$i" -eq 2 ];then
-        start_autoscaler 'd'
+        start_autoscaler 'a'
     fi
     start_tests "$EVAL_1_FOLDER/replicas_$i.csv" "stats_$i.csv" "$EVAL_1_FOLDER/elascale_$i.csv" 'simple'
     rm_app
